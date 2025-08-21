@@ -1,0 +1,49 @@
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiError";
+import Auth from "../auth/auth.model";
+import { BlockUnblockPayload, IAdmin, IRequest } from "./admin.interface";
+import Admin from "./admin.model";
+import { ENUM_USER_ROLE } from "../../../enums/user";
+import Customers from "../customers/customers.model";
+
+const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
+  const { role, email, is_block } = payload;
+  console.log("Blocking/Unblocking User:", role, email, is_block);
+
+
+  const updatedAuth = await Auth.findOneAndUpdate(
+    { email, role },
+    { $set: { is_block } },
+    { new: true, runValidators: true }
+  ).select("role name email is_block");
+
+  console.log("Updated Auth:", updatedAuth);
+
+  if (!updatedAuth) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const statusValue = is_block ? "deactivate" : "active";
+
+  if (role === ENUM_USER_ROLE.CUSTOMERS) {
+    const customer = await Customers.findOneAndUpdate(
+      { authId: updatedAuth._id },
+      { $set: { status: statusValue } }
+    );
+    if (!customer) throw new ApiError(httpStatus.NOT_FOUND, "Customer not found");
+  } else if (role === ENUM_USER_ROLE.ADMIN || role === ENUM_USER_ROLE.SUPER_ADMIN) {
+    const admin = await Admin.findOneAndUpdate(
+      { authId: updatedAuth._id },
+      { $set: { status: statusValue } }
+    );
+    if (!admin) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+  }
+
+  return updatedAuth;
+};
+
+export const AdminService = {
+  blockUnblockAuthUser
+};
+
+
