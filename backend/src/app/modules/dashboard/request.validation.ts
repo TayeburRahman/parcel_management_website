@@ -14,9 +14,13 @@ const parcel = z.object({
             required_error: "Parcel type is required",
         }),
         package_weight: z
-            .string({ required_error: "Package weight is required" })
-            .default("1"),
-        paymentMethod: z.enum(["CASH", "PREPAID"], {
+            .number({ required_error: "Package weight is required" })
+            .default(1),
+        deliveryAmount: z.union([
+            z.literal("FREE"),
+            z.number(),
+        ]).optional(),
+        paymentMethod: z.enum(["COD", "PREPAID"], {
         }).optional(),
         coordinates: z
             .object({

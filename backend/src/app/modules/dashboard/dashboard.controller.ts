@@ -4,9 +4,12 @@ import sendResponse from '../../../shared/sendResponse';
 import { DashboardService } from './dashboard.service';
 import { IParcel } from './dashboard.interface';
 import AppError from '../../../errors/AppError';
+import { IReqUser } from '../auth/auth.interface';
 
 const createShipmentParcel = catchAsync(async (req: Request, res: Response) => {
-    const result = await DashboardService.createShipmentParcel(req.body as IParcel);
+    const user = req.user as IReqUser;
+
+    const result = await DashboardService.createShipmentParcel(req.body as IParcel, user as IReqUser);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -47,8 +50,62 @@ const deleteShipmentParcel = catchAsync(
     }
 );
 
+const getAllShipmentParcels = catchAsync(
+    async (req: Request, res: Response) => {
+        const queryParams = req.query;
+
+        const result = await DashboardService.getAllShipmentParcels(queryParams);
+
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "Parcels fetched successfully",
+            data: result.parcels,
+            meta: result.pagination,
+        });
+    }
+);
+
+const assignedParcelAgent = catchAsync(
+    async (req: Request, res: Response) => {
+        const { parcelId, agentId } = req.query;
+
+        if (!parcelId) {
+            throw new AppError(400, "parcelId is required");
+        }
+
+        const result = await DashboardService.assignedParcelAgent(
+            parcelId as string,
+            agentId as string | undefined
+        );
+
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: agentId ? "Agent assigned successfully" : "Agent removed successfully",
+            data: result,
+        });
+    }
+);
+
+const getMyParcels = catchAsync(async (req: Request, res: Response) => {
+    const { userId } = req.user as IReqUser;
+
+    const result = await DashboardService.getMyParcels(userId);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Parcels fetched successfully",
+        data: result,
+    });
+});
+
 export const DashboardController = {
     createShipmentParcel,
     updateShipmentParcel,
-    deleteShipmentParcel
+    deleteShipmentParcel,
+    getAllShipmentParcels,
+    assignedParcelAgent,
+    getMyParcels
 };

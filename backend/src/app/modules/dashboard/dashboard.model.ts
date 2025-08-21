@@ -1,22 +1,20 @@
 // models/Parcel.ts
 import mongoose, { Document, Model } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 import { IParcel } from "./dashboard.interface";
 
 const parcelSchema = new mongoose.Schema<IParcel>({
     shipmentId: {
         type: String,
         unique: true,
-        default: () => uuidv4(),
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer",
+        ref: "Customers",
         required: true,
     },
     agentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Agent",
+        ref: "Agents",
         default: null,
     },
     package_weight: {
@@ -41,12 +39,24 @@ const parcelSchema = new mongoose.Schema<IParcel>({
     },
     paymentMethod: {
         type: String,
-        enum: ["CASH", "PREPAID"],
+        enum: ["COD", "PREPAID"],
         required: true,
+    },
+    deliveryAmount: {
+        type: mongoose.Schema.Types.Mixed,
+        default: 0,
+        validate: {
+            validator: (val: any) => val === "FREE" || typeof val === "number",
+            message: "deliveryAmount must be 'FREE' or a number",
+        },
     },
     return_shipment: {
         type: String,
         default: null,
+    },
+    qrCode: {
+        type: String,
+        required: true,
     },
     status: {
         type: String,

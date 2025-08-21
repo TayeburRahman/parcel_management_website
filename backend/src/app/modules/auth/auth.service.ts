@@ -11,7 +11,6 @@ import sendEmail from "../../../utils/sendEmail";
 import { ENUM_USER_ROLE } from "../../../enums/user";
 import { sendResetEmail } from "./sendResetMails";
 import { createActivationToken } from "../../../utils/createActivationToken";
-import { registrationSuccessEmailBody } from "../../../mails/user.register";
 import { resetEmailTemplate } from "../../../mails/reset.email";
 import { ActivationPayload, ChangePasswordPayload, ForgotPasswordPayload, IAuth, LoginPayload, ResetPasswordPayload } from "./auth.interface";
 import config from "../../../config";
