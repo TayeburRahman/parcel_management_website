@@ -1,7 +1,14 @@
-// models/Parcel.js
-const mongoose = require("mongoose");
+// models/Parcel.ts
+import mongoose, { Document, Model } from "mongoose";
+import { v4 as uuidv4 } from "uuid";
+import { IParcel } from "./dashboard.interface";
 
-const parcelSchema = new mongoose.Schema({
+const parcelSchema = new mongoose.Schema<IParcel>({
+    shipmentId: {
+        type: String,
+        unique: true,
+        default: () => uuidv4(),
+    },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Customer",
@@ -11,6 +18,11 @@ const parcelSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Agent",
         default: null,
+    },
+    package_weight: {
+        type: Number,
+        required: true,
+        default: 1,
     },
     pickupAddress: {
         type: String,
@@ -29,8 +41,12 @@ const parcelSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["COD", "PREPAID"],
+        enum: ["CASH", "PREPAID"],
         required: true,
+    },
+    return_shipment: {
+        type: String,
+        default: null,
     },
     status: {
         type: String,
@@ -47,11 +63,10 @@ const parcelSchema = new mongoose.Schema({
             lng: { type: Number },
         },
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+}, {
+    timestamps: true,
 });
 
-// Export model
-module.exports = mongoose.model("Parcel", parcelSchema);
+const Parcel: Model<IParcel> = mongoose.model<IParcel>("Parcel", parcelSchema);
+
+export default Parcel;

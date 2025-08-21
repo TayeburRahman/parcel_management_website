@@ -5,7 +5,6 @@ import { BlockUnblockPayload, IAdmin, IRequest } from "./admin.interface";
 import Admin from "./admin.model";
 import { ENUM_USER_ROLE } from "../../../enums/user";
 import Customers from "../customers/customers.model";
-import { createActivationToken } from "../../../utils/createActivationToken";
 import { IAccount, IAuth } from "../auth/auth.interface";
 import Agents from "../agents/agents.model";
 
