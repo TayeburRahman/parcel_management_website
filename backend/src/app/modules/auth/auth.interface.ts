@@ -52,6 +52,17 @@ export type IAuth = Document & {
   [key: string]: any;
 };
 
+export interface IAccount {
+  name?: string;
+  phone_number?: string;
+  password?: string;
+  address?: string;
+  profile_image?: string;
+  role?: "CUSTOMERS" | "ADMIN" | "AGENT" | "SUPER_ADMIN";
+  date_of_birth?: string;
+  [key: string]: any;
+}
+
 export interface IAuthModel extends Model<IAuth> {
   isAuthExist(email: string): Promise<IAuth | null>;
   isPasswordMatched(givenPassword: string, savedPassword: string): Promise<boolean>;

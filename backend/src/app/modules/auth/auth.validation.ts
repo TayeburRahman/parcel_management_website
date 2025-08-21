@@ -14,10 +14,11 @@ const create = z.object({
       .min(6, "Password must be at least 6 characters long"),
     confirmPassword: z
       .string({ required_error: "Password is required" })
-      .min(6, "Password must be at least 6 characters long"),
+      .min(6, "Password must be at least 6 characters long")
+      .optional(),
     phone_number: z.string().optional(),
     address: z.string().optional(),
-    role: z.enum(["CUSTOMER", "ADMIN", "AGENT", "SUPER_ADMIN"]),
+    role: z.enum(["CUSTOMERS", "ADMIN", "AGENT", "SUPER_ADMIN"]),
   }),
 });
 
@@ -33,7 +34,7 @@ const updateUserZodSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters").optional(),
     address: z.string().optional(),
     profile_image: z.string().optional(),
-    role: z.enum(["CUSTOMER", "ADMIN", "AGENT", "SUPER_ADMIN"]).optional(),
+    role: z.enum(["CUSTOMERS", "ADMIN", "AGENT", "SUPER_ADMIN"]).optional(),
     date_of_birth: z.string().optional(),
   }),
 });

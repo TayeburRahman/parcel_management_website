@@ -22,11 +22,13 @@ import { RequestData } from "../../../interfaces/common";
 import { ICustomers } from "../customers/customers.interface";
 import { IAdmin } from "../admin/admin.interface";
 
+
 const registrationAccount = async (payload: IAuth) => {
   const { role, password, confirmPassword, email, ...other } = payload;
 
-  if (!role || !Object.values(ENUM_USER_ROLE).includes(role as any)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Valid Role is required!");
+  // Allow only ADMIN or SUPER_ADMIN
+  if (role !== ENUM_USER_ROLE.ADMIN && role !== ENUM_USER_ROLE.SUPER_ADMIN) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Only Admin or Super Admin registration is allowed!");
   }
 
   if (!password || !confirmPassword || !email) {
@@ -43,8 +45,8 @@ const registrationAccount = async (payload: IAuth) => {
 
   if (existingAuth && !existingAuth.isActive) {
     await Promise.all([
-      existingAuth.role === ENUM_USER_ROLE.CUSTOMERS && Customers.deleteOne({ authId: existingAuth._id }),
-      existingAuth.role === ENUM_USER_ROLE.ADMIN && Admin.deleteOne({ authId: existingAuth._id }),
+      (existingAuth.role === ENUM_USER_ROLE.ADMIN || existingAuth.role === ENUM_USER_ROLE.SUPER_ADMIN) &&
+      Admin.deleteOne({ authId: existingAuth._id }),
       Auth.deleteOne({ email }),
     ]);
   }
@@ -56,21 +58,11 @@ const registrationAccount = async (payload: IAuth) => {
     email,
     activationCode,
     password,
+    isActive: role === ENUM_USER_ROLE.SUPER_ADMIN,
     expirationTime: Date.now() + 3 * 60 * 1000,
   };
 
-  if (role === ENUM_USER_ROLE.CUSTOMERS) {
-    console.log("==", role)
-    sendEmail({
-      email: auth.email,
-      subject: "Activate Your Account",
-      html: registrationSuccessEmailBody({
-        user: { name: auth.name },
-        activationCode,
-      }),
-    }).catch((error) => console.error("Failed to send email:", error.message));
-  }
-
+  // Create Auth
   let createAuth = await Auth.create(auth);
   if (!createAuth) {
     throw new ApiError(500, "Failed to create auth account");
@@ -79,22 +71,13 @@ const registrationAccount = async (payload: IAuth) => {
   other.authId = createAuth._id;
   other.email = email;
 
-  // Role-based user creation
-  let result;
-  switch (role) {
-    case ENUM_USER_ROLE.CUSTOMERS:
-      result = await Customers.create(other);
-      break;
-    case ENUM_USER_ROLE.ADMIN:
-      result = await Admin.create(other);
-      break;
-    default:
-      throw new ApiError(400, "Invalid role provided!");
-  }
+  // Create only Admin/SuperAdmin profile
+  let result = await Admin.create(other);
 
-  const message = role === ENUM_USER_ROLE.CUSTOMERS ?
-    "Please check your email for the activation OTP code."
-    : "Your account is awaiting super admin approval.";
+  const message =
+    role === ENUM_USER_ROLE.ADMIN
+      ? "Your account is awaiting super admin approval."
+      : "Super Admin account created successfully.";
 
   return { result, role, message };
 };

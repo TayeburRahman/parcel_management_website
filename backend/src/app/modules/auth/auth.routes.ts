@@ -43,7 +43,25 @@ router.patch(
   validateRequest(AuthValidation.updateUserZodSchema),
   AuthController.updateMyProfile
 );
-// ========== ADMIN ACCESS BLOCK ACCOUNT ========== 
+// ========== ADMIN ACCESS ========== 
+router.post(
+  "/create-account",
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  validateRequest(AuthValidation.create),
+  AdminController.createAccount
+);
+router.get(
+  "/get-accounts",
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  AdminController.getAccounts
+);
+
+router.delete(
+  "/delete-accounts",
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  AdminController.adminDeleteAccount
+);
+
 router.patch(
   "/block-unblock",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
