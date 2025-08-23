@@ -48,11 +48,6 @@ const AgentsSchema = new Schema<IAgents>(
       type: String,
       default: null,
     },
-    assignedParcels: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Parcel",
-    }
-    ],
     totalDeliveries: {
       type: Number,
       default: 0,

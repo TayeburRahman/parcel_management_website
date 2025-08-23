@@ -5,24 +5,28 @@ import { Request } from "express";
 import { RequestData } from "../../../interfaces/common";
 import Auth from "../auth/auth.model";
 import User from "./customers.model";
+import { IParcel } from "../dashboard/dashboard.interface";
+import Parcel from "../dashboard/dashboard.model";
+import AppError from "../../../errors/AppError";
 
+const getMyParcels = async (customerId: string) => {
 
+    if (!customerId) {
+        throw new AppError(400, "Customer ID is required");
+    }
 
-// const getProfile = async (user: { userId: string }): Promise<IUser> => {
-//   const { userId } = user;
-//   const result = await User.findById(userId).populate("authId");
-//   if (!result) {
-//     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-//   }
+    try {
+        const parcels = await Parcel.find({ customerId })
+            .populate("agentId", "name email phone _number profile_image location")
+            .sort({ createdAt: -1 });
 
-//   const auth = await Auth.findById(result.authId);
-//   if (auth?.is_block) {
-//     throw new ApiError(httpStatus.FORBIDDEN, "You are blocked. Contact support");
-//   }
+        return parcels;
+    } catch (error: any) {
+        throw new AppError(400, error?.message || "Failed to update parcel agent");
+    }
+};
 
-//   return result;
-// };
-
-export const UserService = {
+export const CustomerServices = {
+    getMyParcels
 };
 

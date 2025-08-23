@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --font-poppins: "Poppins", ui-sans-serif, system-ui;
+}
+
+@theme {
+  --color-primary: #00B047;
+  --color-layout-bg: #E9EAEB;
+  --color-content-bg: #F9F9F9;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins);
+}
+
+
+/* Custom utility classes for responsive design */
+@layer utilities {
+  .sidebar-enter {
+    transform: translateX(-100%);
+  }
+  .sidebar-enter-active {
+    transform: translateX(0);
+    transition: transform 0.3s ease-out;
+  }
+  .sidebar-exit {
+    transform: translateX(0);
+  }
+  .sidebar-exit-active {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in;
+  }
+}
+
+/* For overlay when sidebar is open on small screens */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 40; /* Should be lower than sidebar but higher than content */
+  display: block; /* Hidden by default, shown by JS */
+}
+
+.scrl-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrl-hide {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;    /* Firefox */
+}
