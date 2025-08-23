@@ -88,18 +88,18 @@ const assignedParcelAgent = catchAsync(
     }
 );
 
-const getMyParcels = catchAsync(async (req: Request, res: Response) => {
-    const { userId } = req.user as IReqUser;
+const getParcelsDetails = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
 
-    const result = await DashboardService.getMyParcels(userId);
-
+    const result = await DashboardService.getParcelsDetails(id as string);
     sendResponse(res, {
         statusCode: 200,
         success: true,
-        message: "Parcels fetched successfully",
+        message: "Parcel details fetched successfully!",
         data: result,
     });
 });
+
 
 export const DashboardController = {
     createShipmentParcel,
@@ -107,5 +107,5 @@ export const DashboardController = {
     deleteShipmentParcel,
     getAllShipmentParcels,
     assignedParcelAgent,
-    getMyParcels
+    getParcelsDetails
 };

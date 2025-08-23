@@ -137,7 +137,6 @@ const getAllShipmentParcels = async (queryParams: IQueryParams) => {
     return { parcels, pagination };
 };
 
-
 const assignedParcelAgent = async (parcelId: string, agentId?: string) => {
     const parcel = await Parcel.findById(parcelId);
     if (!parcel) throw new AppError(404, "Parcel not found");
@@ -158,40 +157,17 @@ const assignedParcelAgent = async (parcelId: string, agentId?: string) => {
     }
 };
 
+const getParcelsDetails = async (parcelId: string) => {
+    const parcel = await Parcel.findById(parcelId)
+        .populate({ path: "customerId", select: "name email phone_number profile_image location" })
+        .populate({ path: "agentId", select: "name email phone_number profile_image location" });
+    if (!parcel) {
+        throw new AppError(404, "Parcel not found");
+    }
+    return parcel;
+}
+
 // ====Customer===================================== 
-const getMyParcels = async (customerId: string) => {
-
-    if (!customerId) {
-        throw new AppError(400, "Customer ID is required");
-    }
-
-    try {
-        const parcels = await Parcel.find({ customerId })
-            .populate("agentId", "name email phone _number profile_image")
-            .sort({ createdAt: -1 });
-
-        return parcels;
-    } catch (error: any) {
-        throw new AppError(400, error?.message || "Failed to update parcel agent");
-    }
-};
-
-// const getMyParcels = async (customerId: string) => {
-
-//     if (!customerId) {
-//         throw new AppError(400, "Customer ID is required");
-//     }
-
-//     try {
-//         const parcels = await Parcel.find({ customerId })
-//             .populate("agentId", "name email phone _number profile_image")
-//             .sort({ createdAt: -1 });
-
-//         return parcels;
-//     } catch (error: any) {
-//         throw new AppError(400, error?.message || "Failed to update parcel agent");
-//     }
-// };
 
 export const DashboardService = {
     createShipmentParcel,
@@ -199,7 +175,7 @@ export const DashboardService = {
     deleteShipmentParcel,
     getAllShipmentParcels,
     assignedParcelAgent,
-    getMyParcels
+    getParcelsDetails
 };
 
 
