@@ -10,59 +10,67 @@ import { ENUM_USER_ROLE } from "../../../enums/user";
 import sendEmail from "../../../utils/sendEmail";
 import Customers from "../customers/customers.model";
 import { parcelEmailTemplate } from "../../../mails/customer.booking";
-
-
+import path from "path"; 
+import config from "../../../config";
+ 
 // =============Parcels=========================
 const generateShipmentId = () => {
     return Math.floor(10000000 + Math.random() * 9000000000).toString();
 };
 
-const createShipmentParcel = async (payload: IParcel, user: IReqUser) => {
-    const qrCodeDataUrl = await QRCode.toDataURL(generateShipmentId());
+const createShipmentParcel = async (payload: IParcel, user: IReqUser) => { 
+    const shipmentId = `SID-${generateShipmentId()}`;  
+
+    const qrCodeDir = path.join(process.cwd(), "uploads/qrcodes");
+    const qrCodeFilePath = path.join(qrCodeDir, `${shipmentId}.png`);
+    await QRCode.toFile(qrCodeFilePath, shipmentId);  
+    const qrCodeUrl = `/qrcodes/${shipmentId}.png`;
+     
 
     const { role, userId } = user;
-
+  
     try {
-        const newParcel = new Parcel({
-            shipmentId: `SID-${generateShipmentId()}`,
-            customerId: role === ENUM_USER_ROLE.CUSTOMERS ? userId : payload.customerId,
-            pickupAddress: payload.pickupAddress,
-            deliveryAddress: payload.deliveryAddress,
-            parcelType: payload.parcelType,
-            agentId: payload.agentId ?? null,
-            paymentMethod: payload.paymentMethod ?? "COD",
-            package_weight: payload.package_weight ?? 1,
-            coordinates: payload.coordinates,
-            qrCode: qrCodeDataUrl,
-        });
+      const newParcel = new Parcel({
+        shipmentId,
+        customerId: role === ENUM_USER_ROLE.CUSTOMERS ? userId : payload.customerId,
+        pickupAddress: payload.pickupAddress,
+        deliveryAddress: payload.deliveryAddress,
+        parcelType: payload.parcelType,
+        agentId: payload.agentId ?? null,
+        paymentMethod: payload.paymentMethod ?? "COD",
+        package_weight: payload.package_weight ?? 1,
+        coordinates: payload.coordinates,
+        qrCode: qrCodeUrl, 
+      });
+  
+      const customer = await Customers.findOne({ _id: newParcel.customerId }).lean();
+      if (!customer) {
+        throw new AppError(404, "Customer not found");
+      }
+      await newParcel.save();
 
-        const customer = await Customers.findOne({ _id: newParcel.customerId }).lean();
-        if (!customer) {
-            throw new AppError(404, "Customer not found");
-        }
-        await newParcel.save();
-
-
-        await sendEmail({
-            email: customer?.email,
-            subject: "Parcel Booking Confirmation",
-            html: parcelEmailTemplate({
-                name: user.role === "CUSTOMERS" ? "Customer" : "User",
-                shipmentId: `SID-${generateShipmentId()}`,
-                pickupAddress: payload.pickupAddress,
-                deliveryAddress: payload.deliveryAddress,
-                parcelType: payload.parcelType,
-                paymentMethod: payload.paymentMethod ?? "COD",
-                qrCodeUrl: qrCodeDataUrl,
-            }),
-        });
-
-        return newParcel;
+      const fullQRCodeURL =  `http://${config.base_url}:${config.port}${qrCodeUrl}`;
+      console.log('--', fullQRCodeURL)
+      await sendEmail({
+        email: customer?.email,
+        subject: "Parcel Booking Confirmation",
+        html: parcelEmailTemplate({
+          name: user.role === "CUSTOMERS" ? "Customer" : "User",
+          shipmentId,           // ✅ use the same ID
+          pickupAddress: payload.pickupAddress,
+          deliveryAddress: payload.deliveryAddress,
+          parcelType: payload.parcelType,
+          paymentMethod: payload.paymentMethod ?? "COD",
+          qrCodeUrl: fullQRCodeURL,            
+        }),
+      });
+  
+      return newParcel;
     } catch (error: any) {
-        throw new AppError(400, error?.message || "Failed to create parcel");
+      throw new AppError(400, error?.message || "Failed to create parcel");
     }
-
-};
+  };
+  
 
 const updateShipmentParcel = async (parcelId: string,
     payload: Partial<IParcel>) => {
@@ -136,7 +144,6 @@ const getAllShipmentParcels = async (queryParams: IQueryParams) => {
 
     return { parcels, pagination };
 };
-
 
 const assignedParcelAgent = async (parcelId: string, agentId?: string) => {
     const parcel = await Parcel.findById(parcelId);
