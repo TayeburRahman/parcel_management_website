@@ -8,7 +8,6 @@ import { validateRequest } from '../../middlewares/validateRequest';
 import { AdminController } from '../admin/admin.controller';
 
 const router = express.Router();
-
 // --- Auth Routes ---
 router.post("/register", validateRequest(AuthValidation.create), AuthController.registrationAccount)
 router.post("/login", validateRequest(AuthValidation.loginZodSchema), AuthController.loginAccount)
