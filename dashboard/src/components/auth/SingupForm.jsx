@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useForm } from "react-hook-form";
-import { PiEyeLight, PiEyeSlash } from "react-icons/pi";
+import { useForm } from "react-hook-form"; 
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,48 +18,46 @@ import {
 import InputField from "@/components/helper/input-helper/InputField";
 
 const RegisterFormContent = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
+   const router = useRouter(); 
 
-  const [showPassword, setShowPassword] = useState(false);
   const [preview, setPreview] = useState(null);
-
+    const [isFile, setFile] = useState(null);
   const [registerUser, { isLoading }] = useRegisterMutation();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data) => { 
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("email", data.email);
     formData.append("password", data.password);
     formData.append("confirmPassword", data.confirmPassword);
-    formData.append("address", data.address);
-    formData.append("phone_number", data.phone_number);
+    formData.append("address", data.address || "");
+    formData.append("phone_number", data.phone_number || "");
     formData.append("role", "CUSTOMERS");
+    formData.append("profile_image", isFile); 
+   
+    try { 
+      await registerUser(formData).unwrap(); 
 
-    if (data.image && data.image.length > 0) {
-      formData.append("image", data.image[0]);
-    }
-
-    try {
-      const res = await registerUser(formData).unwrap();
-      toast.success("Registration Successful!");
-      setTimeout(() => router.push(redirect), 300);
+      localStorage.setItem("verify_email", data.email);
+      setTimeout(() => router.push("/auth/verify-email?mode=verify-account"), 300);
     } catch (err) {
       const message = err?.data?.message || "Something went wrong";
       toast.error(message);
     }
+  }; 
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];  
+    console.log(file);
+    if (file) {
+      setFile(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
-  // Watch image field for preview
-  const imageFile = watch("image");
+  const imageFile = watch("profile_image");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -72,8 +69,7 @@ const RegisterFormContent = () => {
           Create a new account
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
-          {/* Customer Information Section */}
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4"> 
           <div className="space-y-3">
             <h3 className="text-xs font-bold text-gray-800 flex items-center gap-2 mb-3">
               <div className="w-5 h-5 bg-gradient-to-r from-primary to-primary/80 rounded-sm flex items-center justify-center">
@@ -191,37 +187,26 @@ const RegisterFormContent = () => {
               <Upload className="h-3 w-3 text-primary" />
               Photo
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-sm p-4 text-center cursor-pointer hover:bg-gray-50 hover:border-primary/50 transition-all group">
+           <div className="border-2 border-dashed border-gray-300 rounded-sm p-4 text-center cursor-pointer hover:bg-gray-50 hover:border-primary/50 transition-all group">
               <input
                 type="file"
-                {...register("image", { required: "Image is required" })}
+                {...register("profile_image", { required: "Image is required" })}
                 className="hidden"
                 id="logo-upload"
                 accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files.length > 0) {
-                    setPreview(URL.createObjectURL(e.target.files[0]));
-                  }
-                }}
+                onChange={handleImageChange}
               />
-              <label
-                htmlFor="logo-upload"
-                className="flex flex-col items-center justify-center cursor-pointer"
-              >
+              <label htmlFor="logo-upload" className="flex flex-col items-center justify-center cursor-pointer">
                 <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
                   <Upload className="h-4 w-4 text-primary" />
                 </div>
-                <span className="text-gray-600 text-xs font-medium">
-                  Click to upload photo
-                </span>
-                <span className="text-gray-400 text-xs mt-1">
-                  PNG, JPG up to 5MB
-                </span>
+                <span className="text-gray-600 text-xs font-medium">Click to upload photo</span>
+                <span className="text-gray-400 text-xs mt-1">PNG, JPG up to 5MB</span>
               </label>
             </div>
-            {errors.image && (
+            {errors.profile_image && (
               <p className="text-xs text-red-500 mt-1">
-                {errors.image.message}
+                {errors.profile_image.message}
               </p>
             )}
 

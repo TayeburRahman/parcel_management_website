@@ -9,7 +9,7 @@ import { AdminController } from '../admin/admin.controller';
 
 const router = express.Router();
 // --- Auth Routes ---
-router.post("/register", validateRequest(AuthValidation.create), AuthController.registrationAccount)
+router.post("/register", uploadFile(), validateRequest(AuthValidation.create), AuthController.registrationAccount)
 router.post("/login", validateRequest(AuthValidation.loginZodSchema), AuthController.loginAccount)
 router.post("/activate-user", AuthController.activateAccount)
 router.post("/active-resend", AuthController.resendCodeActivationAccount)

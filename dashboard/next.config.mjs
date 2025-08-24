@@ -1,10 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-   images: {
+  images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '10.10.20.11',
+        port: '5000', 
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',           
         pathname: '/**',
       },
     ],

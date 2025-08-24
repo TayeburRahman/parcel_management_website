@@ -20,15 +20,12 @@ import Customers from "../customers/customers.model";
 import { RequestData } from "../../../interfaces/common";
 import { ICustomers } from "../customers/customers.interface";
 import { IAdmin } from "../admin/admin.interface";
+import { registrationSuccessEmailBody } from "../../../mails/user.register";
 
 
-const registrationAccount = async (payload: IAuth) => {
+const registrationAccount = async (files: any, payload: IAuth) => {
   const { role, password, confirmPassword, email, ...other } = payload;
 
-  // Allow only ADMIN or SUPER_ADMIN
-  if (role !== ENUM_USER_ROLE.ADMIN && role !== ENUM_USER_ROLE.SUPER_ADMIN) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Only Admin or Super Admin registration is allowed!");
-  }
 
   if (!password || !confirmPassword || !email) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email, Password, and Confirm Password are required!");
@@ -49,7 +46,6 @@ const registrationAccount = async (payload: IAuth) => {
       Auth.deleteOne({ email }),
     ]);
   }
-
   const { activationCode } = createActivationToken();
   const auth = {
     role,
@@ -61,46 +57,71 @@ const registrationAccount = async (payload: IAuth) => {
     expirationTime: Date.now() + 3 * 60 * 1000,
   };
 
-  // Create Auth
+  if (role === ENUM_USER_ROLE.CUSTOMERS) {
+    sendEmail({
+      email: auth.email,
+      subject: "Activate Your Account",
+      html: registrationSuccessEmailBody({
+        user: { name: auth.name },
+        activationCode,
+      }),
+    }).catch((error) => console.error("Failed to send email:", error.message));
+  }
+
   let createAuth = await Auth.create(auth);
   if (!createAuth) {
     throw new ApiError(500, "Failed to create auth account");
   }
 
+  let profile_image: string | undefined = undefined;
+  if (files && files.profile_image) {
+    profile_image = `/images/profile/${files.profile_image[0].filename}`;
+  }
+
   other.authId = createAuth._id;
   other.email = email;
+  other.profile_image = profile_image || null;
 
-  // Create only Admin/SuperAdmin profile
-  let result = await Admin.create(other);
+  let result;
+  switch (role) {
+    case ENUM_USER_ROLE.CUSTOMERS:
+      result = await Customers.create(other);
+      break;
+    case ENUM_USER_ROLE.ADMIN:
+      result = await Admin.create(other);
+      break;
+    default:
+      throw new ApiError(400, "Invalid role provided!");
+  }
 
-  const message =
-    role === ENUM_USER_ROLE.ADMIN
-      ? "Your account is awaiting super admin approval."
-      : "Super Admin account created successfully.";
+  const message = role === ENUM_USER_ROLE.CUSTOMERS ?
+    "Please check your email for the activation OTP code."
+    : "Your account is awaiting super super admin approval.";
 
   return { result, role, message };
 };
 
 const activateAccount = async (payload: ActivationPayload) => {
-  const { activation_code, userEmail } = payload;
+  const { otp, email } = payload;
 
-  const existAuth = await Auth.findOne({ email: userEmail });
+  const existAuth = await Auth.findOne({ email });
   if (!existAuth) {
     throw new ApiError(400, "User not found");
   }
-  if (existAuth.activationCode !== activation_code) {
+
+  if (existAuth.activationCode !== otp) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Code didn't match!");
   }
+
   const user = await Auth.findOneAndUpdate(
-    { email: userEmail },
-    { isActive: true },
-    {
-      new: true,
-      runValidators: true,
-    }
+    { email },
+    { isActive: true, activationCode: undefined },
+    { new: true, runValidators: true }
   );
 
-  let result = {} as ICustomers | IAdmin | null;
+  console.log("user", user);
+
+  let result = null as ICustomers | IAdmin | null;
 
   if (existAuth.role === ENUM_USER_ROLE.CUSTOMERS) {
     result = await Customers.findOne({ authId: existAuth._id });
@@ -112,6 +133,7 @@ const activateAccount = async (payload: ActivationPayload) => {
   } else {
     throw new ApiError(400, "Invalid role provided!");
   }
+
   if (!result) {
     throw new ApiError(404, "User details not found");
   }
@@ -125,6 +147,7 @@ const activateAccount = async (payload: ActivationPayload) => {
     config.jwt.secret as string,
     config.jwt.expires_in as string
   );
+
   const refreshToken = jwtHelpers.createToken(
     { authId: existAuth._id, userId: result._id, role: existAuth.role },
     config.jwt.refresh_secret as string,
@@ -134,9 +157,10 @@ const activateAccount = async (payload: ActivationPayload) => {
   return {
     accessToken,
     refreshToken,
-    user,
+    user: { role: existAuth.role, ...existAuth._doc },
   };
 };
+
 
 const loginAccount = async (payload: LoginPayload) => {
   const { email, password } = payload;
@@ -196,7 +220,7 @@ const loginAccount = async (payload: LoginPayload) => {
   return {
     accessToken,
     refreshToken,
-    user: userDetails,
+    user: { role, ...userDetails },
   };
 };
 
@@ -447,7 +471,6 @@ const resendCodeForgotAccount = async (payload: ForgotPasswordPayload) => {
   );
 };
 
-// Scheduled task to unset activationCode field
 cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();

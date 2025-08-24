@@ -4,17 +4,16 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
 import { LuLogOut, LuSettings } from "react-icons/lu";
-import { useDispatch } from "react-redux"; 
+import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { logout } from "@/helper/SessionHelper";
+import { Logout } from "@/redux/features/auth/authSlice";
 
 const Sidebar = ({ menuItems, setSettingsOpen, settingsOpen, pathname, settingMenu, isSidebarOpen, setIsSidebarOpen }) => {
     const router = useRouter();
     const dispatch = useDispatch();
 
     const handleLogout = () => {
-        dispatch(logout());
-        router.push('/auth/login');
+        dispatch(Logout());
     };
 
     const handleLinkClick = () => {
