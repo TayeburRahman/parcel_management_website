@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-
-import { getAuthId, getEmail, setAuthId, setEmail, setToken, setVerifyEmail } from "@/helper/SessionHelper";
+import { getAuthId, setAuthId, setForgetEmail, setToken, setVerifyEmail } from "@/helper/SessionHelper";
 import { ErrorToast, SuccessToast } from "@/helper/ValidationHelper";
-import { SetChangePasswordError, SetForgotError, SetLoginError, SetRegisterError,   setUserDetails,   SetVerifyAccountOtpError, SetVerifyOtpError } from "./authSlice";
+import { SetChangePasswordError, SetForgotError, SetLoginError, SetRegisterError, SetUserDetails, SetVerifyAccountOtpError, SetVerifyOtpError } from "./authSlice";
 import { apiSlice } from "../api/apiSlice";
 
 export const authApi = apiSlice.injectEndpoints({
@@ -19,7 +17,7 @@ export const authApi = apiSlice.injectEndpoints({
                     await queryFulfilled;
                     setVerifyEmail(email);
                     SuccessToast("Please check you email");
-                } catch (err) { 
+                } catch (err) {
                     const message = err?.error?.data?.message;
                     dispatch(SetRegisterError(message));
                 }
@@ -37,11 +35,11 @@ export const authApi = apiSlice.injectEndpoints({
                     const userData = res?.data?.data;
                     const authId = userData?.user?.authId;
                     const token = userData?.accessToken;
-                    const role = userData?.user?.role; 
-                    if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) { 
+                    const role = userData?.user?.role;
+                    if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) {
                         setToken(token);
-                        setAuthId(authId); 
-                        setUserDetails(userData)
+                        setAuthId(authId);
+                        dispatch(SetUserDetails(userData))
                     } else {
                         dispatch(SetLoginError("You are not allowed to login here"));
                     }
@@ -62,8 +60,7 @@ export const authApi = apiSlice.injectEndpoints({
             async onQueryStarted({ email }, { queryFulfilled, dispatch }) {
                 try {
                     await queryFulfilled;
-                    setEmail(email);
-                    SuccessToast("OTP is sent successfully");
+                    setForgetEmail(email);
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     if (message === "Cannot read properties of null (reading 'email')") {
@@ -77,15 +74,14 @@ export const authApi = apiSlice.injectEndpoints({
         }),
         forgotPasswordResendOtp: builder.mutation({
             query: (data) => ({
-                url: "/auth/forgot-resend",
+                url: "/auth/resend-forgot",
                 method: "POST",
                 body: data,
             }),
             async onQueryStarted({ email }, { queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    setEmail(email);
-                    SuccessToast("OTP is sent successfully");
+                    setForgetEmail(email);
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     if (message === "Cannot read properties of null (reading 'email')") {
@@ -106,13 +102,35 @@ export const authApi = apiSlice.injectEndpoints({
             async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
                 try {
                     await queryFulfilled;
-                    SuccessToast("Otp is verified successfully");
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     dispatch(SetVerifyOtpError(message));
                 }
             },
-        }), 
+        }),
+        resetPassword: builder.mutation({
+            query: (data) => ({
+                url: "/auth/reset-password",
+                method: "POST",
+                body: data,
+            }),
+            async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
+                try {
+                    await queryFulfilled;
+                    setTimeout(() => {
+                        localStorage.clear()
+                        window.location.href = "/auth/login";
+                    }, 300);
+                } catch (err) {
+                    const message = err?.error?.data?.message;
+                    if (message === "password is incorrect") {
+                        dispatch(SetChangePasswordError("Wrong Current Password"))
+                    } else {
+                        dispatch(SetChangePasswordError(message))
+                    }
+                }
+            },
+        }),
         changePassword: builder.mutation({
             query: (data) => ({
                 url: "/auth/change-password",
@@ -122,7 +140,6 @@ export const authApi = apiSlice.injectEndpoints({
             async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
                 try {
                     await queryFulfilled;
-                    SuccessToast("Password is updated successfully");
                     setTimeout(() => {
                         localStorage.clear()
                         window.location.href = "/login";
@@ -136,7 +153,7 @@ export const authApi = apiSlice.injectEndpoints({
                     }
                 }
             },
-        }), 
+        }),
         verifyAccountResendOtp: builder.mutation({
             query: (data) => ({
                 url: "/auth/active-resend",
@@ -147,7 +164,6 @@ export const authApi = apiSlice.injectEndpoints({
                 try {
                     await queryFulfilled;
                     setVerifyEmail(email);
-                    SuccessToast("OTP is sent successfully");
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     if (message === "Cannot read properties of null (reading 'email')") {
@@ -166,7 +182,7 @@ export const authApi = apiSlice.injectEndpoints({
                 body: data,
             }),
             async onQueryStarted(_, { queryFulfilled, dispatch }) {
-                try { 
+                try {
                     const res = await queryFulfilled;
                     const userData = res?.data?.data;
                     const authId = userData?.user?.authId;
@@ -176,7 +192,8 @@ export const authApi = apiSlice.injectEndpoints({
                     if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) {
                         setToken(token);
                         setAuthId(authId);
-                        setUserDetails(userData.user)
+                        dispatch(SetUserDetails(userData))
+                        localStorage.removeItem("verify_email");
                     }
 
                 } catch (err) {
@@ -204,16 +221,35 @@ export const authApi = apiSlice.injectEndpoints({
                 }
             },
         }),
+         useUpdateProfileMutation: builder.mutation({
+            query: (data) => ({
+                url: "/auth/edit-profile",
+                method: "PATCH",
+                body: data,
+            }),
+            async onQueryStarted({ email }, { queryFulfilled, dispatch }) {
+                try {
+                    await queryFulfilled;
+                    setVerifyEmail(email);
+                    SuccessToast("Please check you email");
+                } catch (err) {
+                    const message = err?.error?.data?.message;
+                    dispatch(SetRegisterError(message));
+                }
+            },
+        }),
     }),
 });
 
 export const {
     useRegisterMutation,
+    useUpdateProfileMutation,
     useLoginMutation,
     useForgotPasswordSendOtpMutation,
     useForgotPasswordResendOtpMutation,
-    useForgotPasswordVerifyOtpMutation, 
-    useChangePasswordMutation, 
+    useForgotPasswordVerifyOtpMutation,
+    useChangePasswordMutation,
+    useResetPasswordMutation,
     useVerifyAccountResendOtpMutation,
     useVerifyAccountVerifyOtpMutation,
     useDeleteAccountMutation

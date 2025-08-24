@@ -11,7 +11,8 @@ const initialState = {
   ProfileError: "",
   VerifyAccountError: "",
   VerifyAccountOtpError: "",
-  user: {},
+  user: typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : {},
+  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
 };
 
 const authSlice = createSlice({
@@ -24,9 +25,18 @@ const authSlice = createSlice({
     HideLoading: (state) => {
       state.loading = false;
     },
-     setUserDetails: (state, action) => {
-      state.user = action.payload;
+    SetUserDetails: (state, action) => {
+      const { user, accessToken } = action.payload;
+      state.user = user || {};
+      if (accessToken) {
+        state.token = accessToken;
+        localStorage.setItem("token", accessToken);
+      }
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
     },
+
     SetForgotError: (state, action) => {
       state.ForgotError = action.payload;
     },
@@ -54,6 +64,12 @@ const authSlice = createSlice({
     SetVerifyAccountOtpError: (state, action) => {
       state.VerifyAccountOtpError = action.payload;
     },
+    Logout: (state) => {
+      localStorage.clear();
+      window.location.href = "/auth/login";
+      return initialState;
+    },
+
   },
 });
 
@@ -69,7 +85,8 @@ export const {
   SetRegisterError,
   SetChangePasswordError,
   SetProfileError,
-  setUserDetails 
+  SetUserDetails,
+  Logout
 } = authSlice.actions;
 
 const authSliceReducer = authSlice.reducer;

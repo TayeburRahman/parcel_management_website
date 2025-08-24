@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useForm } from "react-hook-form";
-import { PiEyeLight, PiEyeSlash } from "react-icons/pi";
+import { useForm } from "react-hook-form"; 
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,9 +18,7 @@ import {
 import InputField from "@/components/helper/input-helper/InputField";
 
 const RegisterFormContent = () => {
-   const router = useRouter();
-  const searchParams = useSearchParams();
-  // const redirect = searchParams.get("redirect") || "/auth/verify-email";
+   const router = useRouter(); 
 
   const [preview, setPreview] = useState(null);
     const [isFile, setFile] = useState(null);
@@ -40,12 +37,11 @@ const RegisterFormContent = () => {
     formData.append("role", "CUSTOMERS");
     formData.append("profile_image", isFile); 
    
-    try {
-      // console.log("Form Data Entries:", ...formData);
+    try { 
       await registerUser(formData).unwrap(); 
 
       localStorage.setItem("verify_email", data.email);
-      setTimeout(() => router.push("/auth/verify-email"), 300);
+      setTimeout(() => router.push("/auth/verify-email?mode=verify-account"), 300);
     } catch (err) {
       const message = err?.data?.message || "Something went wrong";
       toast.error(message);

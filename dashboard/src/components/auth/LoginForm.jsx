@@ -2,19 +2,21 @@
 
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
-import { PiEyeLight, PiEyeSlash } from "react-icons/pi";
-import toast from "react-hot-toast";
+import { PiEyeLight, PiEyeSlash } from "react-icons/pi"; 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { Mail, Lock } from "lucide-react";
 import InputField from "@/components/helper/input-helper/InputField";
+import { SuccessToast } from "@/helper/ValidationHelper";
+import { useDispatch } from "react-redux";
+import { SetForgotError } from "@/redux/features/auth/authSlice";
 
 const LoginFormContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
-
+ const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [login, { isLoading }] = useLoginMutation();
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -22,11 +24,11 @@ const LoginFormContent = () => {
   const onSubmit = async (data) => {
     try {
       await login(data).unwrap();
-      toast.success("Login successful!");
+      SuccessToast("Login successful!");
       setTimeout(() => router.push(redirect), 300);
     } catch (err) {
       const message = err?.data?.message || "Something went wrong";
-      toast.error(message);
+      dispatch(SetForgotError(message));
     }
   };
 

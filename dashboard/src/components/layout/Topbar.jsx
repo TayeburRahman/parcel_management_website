@@ -27,13 +27,7 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             case '/reports':
                 return 'Reports';
             case '/settings/profile':
-                return 'Profile Settings';
-            case '/settings/about-us':
-                return 'About Us';
-            case '/settings/terms':
-                return 'Terms & Condition';
-            case '/settings/privacy-policy':
-                return 'Privacy Policy';
+                return 'Profile Settings';   
             default:
                 if (path.startsWith('/settings')) {
                     return 'Settings';

@@ -1,12 +1,12 @@
 
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";  
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getToken } from "@/helper/SessionHelper";
 import { SetLoginError } from "../auth/authSlice";
 
 // export const baseUrl = "https://backend.machmakers.co.uk";
 export const baseUrl = "http://10.10.20.11:5000";
 
-const baseQuery = fetchBaseQuery({ 
+const baseQuery = fetchBaseQuery({
   baseUrl: baseUrl,
   prepareHeaders: (headers) => {
     if (getToken()) {
@@ -26,8 +26,7 @@ export const apiSlice = createApi({
       if (error?.data?.message === "Please activate your account then try to login") {
         api.dispatch(SetLoginError(error?.data?.message));
       } else {
-        localStorage.clear();
-        // ErrorToast("Authorization Expired");
+        localStorage.clear(); 
         window.location.href = "/login";
       }
     }

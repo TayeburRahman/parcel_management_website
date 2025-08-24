@@ -36,6 +36,9 @@ class SessionHelper {
   getEmail() {
     return localStorage.getItem("email");
   }
+  setForgetEmail(email) {
+    localStorage.setItem("forgot_email", email);
+  }
 
   setVerifyEmail(email) {
     localStorage.setItem("verifyEmail", email);
@@ -46,7 +49,6 @@ class SessionHelper {
       return localStorage.getItem("verifyEmail");
     }
   }
-
   setOtp(otp) {
     localStorage.setItem("otp", otp);
   }
@@ -63,11 +65,7 @@ class SessionHelper {
     return localStorage.getItem("authId");
   }
 
-  logout() {
-    localStorage.clear();
-    window.location.href = "/";
-    // SuccessToast("Logout Success");
-  }
+ 
 }
 
 export const {
@@ -79,9 +77,9 @@ export const {
   getUserInfo,
   getVerifyEmail,
   setOtp,
-  getOtp,
-  logout,
+  getOtp, 
   isLoggedIn,
   setAuthId,
-  getAuthId
+  getAuthId,
+  setForgetEmail
 } = new SessionHelper();
