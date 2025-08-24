@@ -11,6 +11,7 @@ const initialState = {
   ProfileError: "",
   VerifyAccountError: "",
   VerifyAccountOtpError: "",
+  user: {},
 };
 
 const authSlice = createSlice({
@@ -22,6 +23,9 @@ const authSlice = createSlice({
     },
     HideLoading: (state) => {
       state.loading = false;
+    },
+     setUserDetails: (state, action) => {
+      state.user = action.payload;
     },
     SetForgotError: (state, action) => {
       state.ForgotError = action.payload;
@@ -65,6 +69,7 @@ export const {
   SetRegisterError,
   SetChangePasswordError,
   SetProfileError,
+  setUserDetails 
 } = authSlice.actions;
 
 const authSliceReducer = authSlice.reducer;

@@ -1,9 +1,9 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { getAuthId, getEmail, setAuthId, setEmail, setToken, setVerifyEmail } from "@/helper/SessionHelper";
 import { ErrorToast, SuccessToast } from "@/helper/ValidationHelper";
-import { SetChangePasswordError, SetForgotError, SetLoginError, SetRegisterError, SetResetPasswordError, SetVerifyAccountError, SetVerifyAccountOtpError, SetVerifyOtpError } from "./authSlice";
+import { SetChangePasswordError, SetForgotError, SetLoginError, SetRegisterError,   setUserDetails,   SetVerifyAccountOtpError, SetVerifyOtpError } from "./authSlice";
 import { apiSlice } from "../api/apiSlice";
 
 export const authApi = apiSlice.injectEndpoints({
@@ -19,7 +19,7 @@ export const authApi = apiSlice.injectEndpoints({
                     await queryFulfilled;
                     setVerifyEmail(email);
                     SuccessToast("Please check you email");
-                } catch (err) {
+                } catch (err) { 
                     const message = err?.error?.data?.message;
                     dispatch(SetRegisterError(message));
                 }
@@ -35,20 +35,13 @@ export const authApi = apiSlice.injectEndpoints({
                 try {
                     const res = await queryFulfilled;
                     const userData = res?.data?.data;
-
-                    const authId = userData?.id;
+                    const authId = userData?.user?.authId;
                     const token = userData?.accessToken;
-                    const role = userData?.user?.role;
-
-                    // Handle allowed roles dynamically
-                    if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) {
-                        SuccessToast("Login Success");
+                    const role = userData?.user?.role; 
+                    if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) { 
                         setToken(token);
-                        setAuthId(authId);
-
-                        setTimeout(() => {
-                            window.location.href = "/";
-                        }, 300);
+                        setAuthId(authId); 
+                        setUserDetails(userData)
                     } else {
                         dispatch(SetLoginError("You are not allowed to login here"));
                     }
@@ -119,27 +112,7 @@ export const authApi = apiSlice.injectEndpoints({
                     dispatch(SetVerifyOtpError(message));
                 }
             },
-        }),
-        forgotPasswordReset: builder.mutation({
-            query: (data) => ({
-                url: `/auth/reset-password?email=${getEmail()}`,
-                method: "POST",
-                body: data,
-            }),
-            async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
-                try {
-                    await queryFulfilled;
-                    SuccessToast("Password is reset successfully!");
-                    localStorage.clear();
-                    setTimeout(() => {
-                        window.location.href = "/login";
-                    }, 300);
-                } catch (err) {
-                    const message = err?.error?.data?.message;
-                    dispatch(SetResetPasswordError(message));
-                }
-            },
-        }),
+        }), 
         changePassword: builder.mutation({
             query: (data) => ({
                 url: "/auth/change-password",
@@ -163,29 +136,7 @@ export const authApi = apiSlice.injectEndpoints({
                     }
                 }
             },
-        }),
-        verifyAccountSendOtp: builder.mutation({
-            query: (data) => ({
-                url: "/auth/active-resend",
-                method: "POST",
-                body: data,
-            }),
-            async onQueryStarted({ email }, { queryFulfilled, dispatch }) {
-                try {
-                    await queryFulfilled;
-                    setVerifyEmail(email);
-                    SuccessToast("OTP is sent successfully");
-                } catch (err) {
-                    const message = err?.error?.data?.message;
-                    if (message === "Cannot read properties of null (reading 'email')") {
-                        dispatch(SetVerifyAccountError("Couldn't find this email address"))
-                    }
-                    else {
-                        dispatch(SetVerifyAccountError(message));
-                    }
-                }
-            },
-        }),
+        }), 
         verifyAccountResendOtp: builder.mutation({
             query: (data) => ({
                 url: "/auth/active-resend",
@@ -215,13 +166,19 @@ export const authApi = apiSlice.injectEndpoints({
                 body: data,
             }),
             async onQueryStarted(_, { queryFulfilled, dispatch }) {
-                try {
-                    await queryFulfilled;
-                    SuccessToast("Account is verified successfully");
-                    localStorage.clear();
-                    setTimeout(() => {
-                        window.location.href = "/login";
-                    }, 300);
+                try { 
+                    const res = await queryFulfilled;
+                    const userData = res?.data?.data;
+                    const authId = userData?.user?.authId;
+                    const token = userData?.accessToken;
+                    const role = userData?.user?.role;
+
+                    if (["SUPER_ADMIN", "ADMIN", "CUSTOMERS", "AGENT"].includes(role)) {
+                        setToken(token);
+                        setAuthId(authId);
+                        setUserDetails(userData.user)
+                    }
+
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     dispatch(SetVerifyAccountOtpError(message));
@@ -255,10 +212,8 @@ export const {
     useLoginMutation,
     useForgotPasswordSendOtpMutation,
     useForgotPasswordResendOtpMutation,
-    useForgotPasswordVerifyOtpMutation,
-    useForgotPasswordResetMutation,
-    useChangePasswordMutation,
-    useVerifyAccountSendOtpMutation,
+    useForgotPasswordVerifyOtpMutation, 
+    useChangePasswordMutation, 
     useVerifyAccountResendOtpMutation,
     useVerifyAccountVerifyOtpMutation,
     useDeleteAccountMutation

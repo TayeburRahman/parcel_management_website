@@ -6,8 +6,6 @@ import { useSelector } from "react-redux";
 export default function PrivateRoute({ children }) {
   const user = useSelector((state) => state.auth.user);
   const router  = useRouter();
-
-  // redirect when not authenticated
   
   useEffect(() => {
     if (!user) {

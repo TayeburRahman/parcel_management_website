@@ -69,8 +69,8 @@ export interface IAuthModel extends Model<IAuth> {
 }
 
 export interface ActivationPayload {
-  activation_code: string;
-  userEmail: string;
+  otp: string;
+  email: string;
 }
 
 

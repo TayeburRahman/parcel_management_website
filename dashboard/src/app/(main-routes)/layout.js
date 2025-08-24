@@ -8,8 +8,7 @@ import { FaNutritionix } from 'react-icons/fa';
 import { PiUsersThree } from 'react-icons/pi';
 import { MdOutlineManageAccounts, MdOutlineRestaurantMenu } from 'react-icons/md';
 
-
-const menuItems = [
+const adminItems = [
   { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
   { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> },
   { label: "Customer Management", href: "/customer-management", icon: <MdOutlineManageAccounts size={20} /> },
@@ -17,6 +16,18 @@ const menuItems = [
   { label: "Nutrition Info", href: "/nutrition-info", icon: <FaNutritionix size={20} /> },
   { label: "Reports", href: "/reports", icon: <TbReportSearch size={20} /> },
 ];
+
+const customersItems = [
+  { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
+  { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> }, 
+];
+
+const agentItems = [
+  { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
+  { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> }, 
+];
+
+
 const settingMenu = [
   { label: "Profile", href: "/settings/profile" },
   { label: "About Us", href: "/settings/about-us" },
@@ -28,6 +39,7 @@ export default function MainRouteLayout({ children }) {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
+    // token 
 
     useEffect(() => {
         const handleResize = () => {
@@ -47,7 +59,7 @@ export default function MainRouteLayout({ children }) {
             <div className="min-h-screen flex relative">
                 {/* Sidebar */}
                 <Sidebar
-                    menuItems={menuItems}
+                    menuItems={adminItems}
                     setSettingsOpen={setSettingsOpen}
                     settingsOpen={settingsOpen}
                     pathname={pathname}

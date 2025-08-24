@@ -7,7 +7,8 @@ import config from '../../../config';
 import { IReqUser } from './auth.interface';
 
 const registrationAccount = catchAsync(async (req: Request, res: Response) => {
-  const { message } = await AuthService.registrationAccount(req.body);
+  const files = req.files;
+  const { message } = await AuthService.registrationAccount(files, req.body);
 
   sendResponse(res, {
     statusCode: 200,
