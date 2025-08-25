@@ -220,7 +220,7 @@ const loginAccount = async (payload: LoginPayload) => {
   return {
     accessToken,
     refreshToken,
-    user: { role, ...userDetails },
+    user: { role, ...userDetails._doc },
   };
 };
 
