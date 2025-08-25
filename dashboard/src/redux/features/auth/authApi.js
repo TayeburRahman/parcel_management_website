@@ -221,23 +221,34 @@ export const authApi = apiSlice.injectEndpoints({
                 }
             },
         }),
-         useUpdateProfileMutation: builder.mutation({
-            query: (data) => ({
-                url: "/auth/edit-profile",
-                method: "PATCH",
-                body: data,
+        updateProfile: builder.mutation({
+            query: (formData) => ({
+              url: "/auth/edit-profile",
+              method: "PATCH",
+              body: formData,
             }),
-            async onQueryStarted({ email }, { queryFulfilled, dispatch }) {
-                try {
-                    await queryFulfilled;
-                    setVerifyEmail(email);
-                    SuccessToast("Please check you email");
-                } catch (err) {
-                    const message = err?.error?.data?.message;
-                    dispatch(SetRegisterError(message));
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+              try {
+                const { data } = await queryFulfilled;
+                console.log("Profile update response:", data);
+           
+                if (data?.data) {
+                  dispatch(SetUserDetails({ user: data.data }));  
+                  SuccessToast("Profile updated successfully!");
                 }
+              } catch (err) {
+                console.error("Profile update error:", err);
+          
+                const message =
+                  err?.error?.data?.message ||
+                  err?.data?.message ||
+                  "Profile update failed!";
+                dispatch(SetRegisterError(message));
+                alert(message);
+              }
             },
-        }),
+          }),
+          
     }),
 });
 

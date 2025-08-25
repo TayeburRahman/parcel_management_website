@@ -1,97 +1,119 @@
-"use client"
-import PageContainer from "@/components/container/PageContainer"
-import { FiCamera } from "react-icons/fi"
-import { User, Settings, Shield, Edit3 } from "lucide-react"
-import Image from "next/image"
-import { useState, useRef, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import EditProfileTab from "@/components/profile/tabs/EditProfileTab"
-import ChangePassTab from "@/components/profile/tabs/ChangePassTab"
-import { useSelector, useDispatch } from "react-redux"
-import { SetUserDetails } from "@/redux/features/auth/authSlice"
-import { baseUrl } from "@/redux/features/api/apiSlice"
+"use client";
 
-const ProfilePage = () => {
-  const dispatch = useDispatch()
-  const authUser = useSelector((state) => state.auth.user)
+import PageContainer from "@/components/container/PageContainer";
+import { FiCamera } from "react-icons/fi";
+import { User, Settings, Shield, Edit3 } from "lucide-react";
+import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import EditProfileTab from "@/components/profile/tabs/EditProfileTab";
+import ChangePassTab from "@/components/profile/tabs/ChangePassTab";
+import { useSelector, useDispatch } from "react-redux";
+import { baseUrl } from "@/redux/features/api/apiSlice";
+import { SuccessToast } from "@/helper/ValidationHelper";
+import { useUpdateProfileMutation } from "@/redux/features/auth/authApi";
+import { SetRegisterError, SetUserDetails } from "@/redux/features/auth/authSlice";
 
-  const [activeTab, setActiveTab] = useState("profile")
-  const [previewImage, setPreviewImage] = useState(authUser?.profile_image || "/images/avatar.png")
-  const fileInputRef = useRef(null)
+const ProfilePage = () => { 
+  const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth.user);
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [updateProfile] = useUpdateProfileMutation();
 
-  const { handleSubmit, register, reset, formState: { errors }, watch } = useForm({
+  const [activeTab, setActiveTab] = useState("profile");
+  const [previewImage, setPreviewImage] = useState(
+    authUser?.profile_image || "/images/avatar.png"
+  );
+  const fileInputRef = useRef(null);
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+    watch,
+  } = useForm({
     defaultValues: {
       name: authUser?.name || "",
       email: authUser?.email || "",
       phone: authUser?.phone_number || "",
-      address: authUser?.address || "", 
+      address: authUser?.address || "",
       vehicleType: authUser?.vehicleType || false,
       status: authUser?.status || "",
-    }
-  })
+    },
+  });
 
   useEffect(() => {
     reset({
       name: authUser?.name || "",
       email: authUser?.email || "",
       phone: authUser?.phone_number || "",
-      address: authUser?.address || "", 
+      address: authUser?.address || "",
       vehicleType: authUser?.vehicleType || false,
       status: authUser?.status || "",
-    })
+    });
 
-    if (authUser?.profile_image) setPreviewImage(authUser.profile_image)
-  }, [authUser, reset])
+    if (authUser?.profile_image) setPreviewImage(authUser.profile_image);
+  }, [authUser, reset]);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0]
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
     if (file) {
-      const imageURL = URL.createObjectURL(file)
-      setPreviewImage(imageURL)
-    }
-  }
+      const imageURL = URL.createObjectURL(file);
+      setPreviewImage(imageURL);
+ 
+      const formData = new FormData();
+      formData.append("profile_image", file);
 
-  const onSubmitProfile = async (data ) => {
-    const formData = new FormData()
-    formData.append("name", data.name)
-    formData.append("email", data.email)
-    formData.append("phone_number", data.phone)
-    formData.append("address", data.address) 
-    formData.append("vehicleType", data.vehicleType)
+      try {
+          await updateProfile(formData).unwrap(); 
+        SuccessToast("Profile image updated successfully!");
+      } catch (err) {
+        console.error(err);
+        dispatch(SetRegisterError(message || "Failed to update profile image!")); 
+      }
+    }
+  };
+
+  const onSubmitProfile = async (values) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("phone_number", values.phone);
+    formData.append("address", values.address);
+    formData.append("vehicleType", String(values.vehicleType));
 
     if (fileInputRef.current?.files?.[0]) {
-      formData.append("profile_image", fileInputRef.current.files[0])
+      formData.append("profile_image", fileInputRef.current.files[0]);
     }
+    console.log('=======')
 
     try {
-      const response = await fetch(`${baseUrl}/user/profile`, {
-        method: "PUT",
-        body: formData,
-      })
-      if (!response.ok) throw new Error("Failed to update profile")
-
-      const updatedUser = await response.json()
-      dispatch(SetUserDetails({ user: updatedUser }))
-      alert("Profile updated successfully!")
+      const updatedUser = await updateProfile(formData).unwrap();
+      dispatch(SetUserDetails({ user: updatedUser }));
+      SuccessToast("Profile updated successfully!");
     } catch (err) {
-      console.error(err)
-      alert("Failed to update profile!")
+      console.error(err);
+      const message = err?.data?.message || "Something went wrong";
+      alert(message);
     }
-  }
+  };
 
-  const onSubmitPassword = (data ) => {
-    console.log("Password Changed:", data) 
-  }
+  const onSubmitPassword = (data) => {
+    console.log("Password Changed:", data);
+  };
 
-const imageUrl = previewImage
-  ? previewImage.startsWith("http")
-    ? previewImage
-    : `${baseUrl}${previewImage}`
-  : "/images/avatar.png";
+  const imageUrl = previewImage
+    ? previewImage.startsWith("http")
+      ? previewImage
+      : previewImage.startsWith("blob:")
+      ? previewImage
+      : `${baseUrl}${previewImage}`
+    : "/images/avatar.png";
 
   return (
     <PageContainer>
@@ -104,7 +126,9 @@ const imageUrl = previewImage
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-800">Profile Settings</h1>
-              <p className="text-sm text-gray-600">Manage your account information and security</p>
+              <p className="text-sm text-gray-600">
+                Manage your account information and security
+              </p>
             </div>
           </div>
         </div>
@@ -113,7 +137,7 @@ const imageUrl = previewImage
           {/* Profile Card */}
           <div className="lg:w-1/3">
             <div className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden">
-            <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white text-center">
+              <div className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-white text-center">
                 <div className="relative inline-block mb-4">
                   <Image
                     src={imageUrl}
@@ -127,11 +151,21 @@ const imageUrl = previewImage
                     onClick={() => fileInputRef.current?.click()}
                     className="absolute flex justify-center items-center p-2 w-8 h-8 border-3 border-white bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary rounded-full -bottom-1 -right-1 cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 group"
                   >
-                    <FiCamera size={14} color="#fff" className="group-hover:scale-110 transition-transform" />
+                    <FiCamera
+                      size={14}
+                      color="#fff"
+                      className="group-hover:scale-110 transition-transform"
+                    />
                   </button>
                 </div>
                 <h2 className="text-xl font-bold mb-1">{authUser?.name}</h2>
-                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                />
               </div>
 
               {/* Stats */}
@@ -213,7 +247,7 @@ const imageUrl = previewImage
         </div>
       </div>
     </PageContainer>
-  )
-}
+  );
+};
 
-export default ProfilePage
+export default ProfilePage;

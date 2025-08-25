@@ -21,8 +21,7 @@ import { RequestData } from "../../../interfaces/common";
 import { ICustomers } from "../customers/customers.interface";
 import { IAdmin } from "../admin/admin.interface";
 import { registrationSuccessEmailBody } from "../../../mails/user.register";
-
-
+ 
 const registrationAccount = async (files: any, payload: IAuth) => {
   const { role, password, confirmPassword, email, ...other } = payload;
 
@@ -154,6 +153,8 @@ const activateAccount = async (payload: ActivationPayload) => {
     config.jwt.refresh_expires_in as string
   );
 
+  console.log(...existAuth._doc)
+
   return {
     accessToken,
     refreshToken,
@@ -220,7 +221,7 @@ const loginAccount = async (payload: LoginPayload) => {
   return {
     accessToken,
     refreshToken,
-    user: { role, ...userDetails },
+    user: { role, ...userDetails._doc },
   };
 };
 
@@ -564,49 +565,57 @@ const deleteMyAccount = async (payload: { authId: string }) => {
 };
 
 const updateMyProfile = async (req: RequestData) => {
-  const { files, body: data } = req as any;
-  const { userId, authId, role } = req.user;
+  try {
+    const { files, body: data } = req as any;
+    const { userId, authId, role } = req.user;
 
-  if (!Object.keys(data).length && (!files || !files.profile_image)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Data is missing in the request body!");
+    // Validate request
+    if (!Object.keys(data).length && (!files || !files.profile_image)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Data is missing in the request body!");
+    }
+
+    const checkAuth = await Auth.findById(authId);
+    if (!checkAuth?.isActive) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized");
+    }
+
+    let profile_image: string | undefined = undefined;
+    if (files && files.profile_image) {
+      profile_image = `/images/profile/${files.profile_image[0].filename}`;
+    }
+
+    if (role === ENUM_USER_ROLE.CUSTOMERS) {
+      const customer = await Customers.findById(userId);
+      if (!customer) throw new ApiError(httpStatus.NOT_FOUND, "Customer not found!");
+
+      const [updatedAuth, updatedCustomer] = await Promise.all([
+        Auth.findByIdAndUpdate(authId, { name: data.name, profile_image }, { new: true }),
+        Customers.findByIdAndUpdate(userId, { profile_image, ...data }, { new: true }).populate("authId"),
+      ]);
+
+      return updatedCustomer as ICustomers;
+    }
+
+    if (role === ENUM_USER_ROLE.ADMIN || role === ENUM_USER_ROLE.SUPER_ADMIN) {
+      const admin = await Admin.findById(userId);
+      if (!admin) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found!");
+
+      const [updatedAuth, updatedAdmin] = await Promise.all([
+        Auth.findByIdAndUpdate(authId, { name: data.name, profile_image }, { new: true }),
+        Admin.findByIdAndUpdate(userId, { profile_image, ...data }, { new: true }).populate("authId"),
+      ]);
+
+      return updatedAdmin as IAdmin;
+    }
+
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid role");
+  } catch (err) {
+    console.error("Update profile error:", err);
+    if (err instanceof ApiError) throw err;  
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while updating profile");
   }
-
-  const checkAuth = await Auth.findById(authId);
-  if (!checkAuth?.isActive) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized");
-  }
-
-  let profile_image: string | undefined = undefined;
-  if (files && files.profile_image) {
-    profile_image = `/images/profile/${files.profile_image[0].filename}`;
-  }
-
-  if (role === ENUM_USER_ROLE.CUSTOMERS) {
-    const customer = await Customers.findById(userId);
-    if (!customer) throw new ApiError(httpStatus.NOT_FOUND, "Customer not found!");
-
-    const [updatedAuth, updatedCustomer] = await Promise.all([
-      Auth.findByIdAndUpdate(authId, { name: data.name, profile_image }, { new: true }),
-      Customers.findByIdAndUpdate(userId, { profile_image, ...data }, { new: true }).populate("authId"),
-    ]);
-
-    return updatedCustomer as ICustomers;
-  }
-
-  if (role === ENUM_USER_ROLE.ADMIN || role === ENUM_USER_ROLE.SUPER_ADMIN) {
-    const admin = await Admin.findById(userId);
-    if (!admin) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found!");
-
-    const [updatedAuth, updatedAdmin] = await Promise.all([
-      Auth.findByIdAndUpdate(authId, { name: data.name, profile_image }, { new: true }),
-      Admin.findByIdAndUpdate(userId, { profile_image, ...data }, { new: true }).populate("authId"),
-    ]);
-
-    return updatedAdmin as IAdmin;
-  }
-
-  throw new ApiError(httpStatus.BAD_REQUEST, "Invalid role");
 };
+
 
 export const AuthService = {
   registrationAccount,
