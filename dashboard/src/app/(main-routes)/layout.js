@@ -13,7 +13,7 @@ import PrivateRoute from "@/components/privet-route/PrivetRoute";
 
 const adminItems = [
     { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
-    { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> },
+    { label: "Agent Management", href: "/agent-management", icon: <PiUsersThree size={20} /> },
     { label: "Customer Management", href: "/customer-management", icon: <MdOutlineManageAccounts size={20} /> },
     { label: "Weekly Menu", href: "/weekly-menu", icon: <MdOutlineRestaurantMenu size={20} /> },
     { label: "Nutrition Info", href: "/nutrition-info", icon: <FaNutritionix size={20} /> },
