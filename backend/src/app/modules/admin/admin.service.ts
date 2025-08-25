@@ -82,10 +82,12 @@ const deleteAccount = async (email: string) => {
   return { success: true, message: `Account with email ${email} deleted successfully.` };
 };
 
-const getAccounts = async (filters: { role?: string; searchTerm?: string }) => {
-  const { role, searchTerm } = filters;
+const getAccounts = async (filters: { role?: string; searchTerm?: string; page?: number; limit?: number }) => {
+  const { role, searchTerm, page = 1, limit = 10 } = filters;
 
-  let query: any = {};
+  console.log("=-===", role)
+
+  const query: any = {};
   if (searchTerm) {
     query.$or = [
       { email: { $regex: searchTerm, $options: "i" } },
@@ -94,25 +96,58 @@ const getAccounts = async (filters: { role?: string; searchTerm?: string }) => {
   }
 
   let results;
+  let totalCount = 0;
 
   switch (role) {
     case ENUM_USER_ROLE.CUSTOMERS:
-      results = await Customers.find(query).populate("authId").lean();
+      totalCount = await Customers.countDocuments(query);
+      results = await Customers.find(query)
+        .populate("authId")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
       break;
 
     case ENUM_USER_ROLE.AGENT:
-      results = await Agents.find(query).populate("authId").lean();
+      totalCount = await Agents.countDocuments(query);
+      results = await Agents.find(query)
+        .populate("authId")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
       break;
 
     default:
-      const customers = await Customers.find(query).populate("authId").lean();
-      const agents = await Agents.find(query).populate("authId").lean();
+      const customersCount = await Customers.countDocuments(query);
+      const agentsCount = await Agents.countDocuments(query);
+      totalCount = customersCount + agentsCount;
+
+      const customers = await Customers.find(query)
+        .populate("authId")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+
+      const agents = await Agents.find(query)
+        .populate("authId")
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+
       results = [...customers, ...agents];
       break;
   }
 
-  return { count: results.length, results, createAccount };
+  const meta = {
+    total: totalCount,
+    page,
+    limit,
+    pageCount: Math.ceil(totalCount / limit),
+  };
+
+  return { results, meta };
 };
+
 
 const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
   const { role, email, is_block } = payload;
@@ -120,7 +155,7 @@ const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
 
 
   const updatedAuth = await Auth.findOneAndUpdate(
-    { email, role },
+    { email },
     { $set: { is_block } },
     { new: true, runValidators: true }
   ).select("role name email is_block");

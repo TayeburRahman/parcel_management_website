@@ -33,5 +33,6 @@ export const apiSlice = createApi({
 
     return result;
   },
+  tagTypes: ["get-accounts"],
   endpoints: () => ({}),
 });

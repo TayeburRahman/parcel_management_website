@@ -1,10 +1,15 @@
-import VerifyEmailForm from '@/components/auth/VerifyEmailBox';
-import React from 'react';
+'use client';
+
+import React, { Suspense } from 'react';
+const VerifyEmailForm = React.lazy(() => import('@/components/auth/VerifyEmailBox'));
+
 
 const verifyEmail = () => {
     return (
         <>
-            <VerifyEmailForm />
+            <Suspense fallback={<div>Loading...</div>}>
+                <VerifyEmailForm />
+            </Suspense>
         </>
     );
 };

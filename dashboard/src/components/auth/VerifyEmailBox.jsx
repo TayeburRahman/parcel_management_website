@@ -8,42 +8,50 @@ import toast from "react-hot-toast";
 import { ErrorToast, SuccessToast } from "@/helper/ValidationHelper";
 import { SetVerifyAccountOtpError } from "@/redux/features/auth/authSlice";
 
- 
-import { 
-  useVerifyAccountResendOtpMutation, 
-    useForgotPasswordResendOtpMutation, 
-  useForgotPasswordVerifyOtpMutation ,
-  useVerifyAccountVerifyOtpMutation 
+import {
+  useVerifyAccountResendOtpMutation,
+  useForgotPasswordResendOtpMutation,
+  useForgotPasswordVerifyOtpMutation,
+  useVerifyAccountVerifyOtpMutation,
 } from "@/redux/features/auth/authApi";
- 
- 
+
 const VerifyEmailForm = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
- 
+
   const mode = searchParams.get("mode") || "verify-account";
- 
+
   const [verifyAccountResendOtp] = useVerifyAccountResendOtpMutation();
   const [verifyAccountVerifyOtp] = useVerifyAccountVerifyOtpMutation();
 
   const [forgotPasswordResendOtp] = useForgotPasswordResendOtpMutation();
   const [forgotPasswordVerifyOtp] = useForgotPasswordVerifyOtpMutation();
- 
+
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRefs = useRef([]);
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
- 
-  const [email, setEmail] = useState(
-    mode === "verify-account"
-      ? localStorage.getItem("verify_email") || ""
-      : localStorage.getItem("forgot_email") || ""
-  );
- 
+
+  const [email, setEmail] = useState("");
+
+  // ✅ Safe localStorage read (client-only)
   useEffect(() => {
-    if (timer <= 0) return setCanResend(true);
+    const storedEmail =
+      mode === "verify-account"
+        ? localStorage.getItem("verify_email") || ""
+        : localStorage.getItem("forgot_email") || "";
+
+    setEmail(storedEmail);
+  }, [mode]);
+
+  // ✅ Timer cleanup
+  useEffect(() => {
+    if (timer <= 0) {
+      setCanResend(true);
+      return;
+    }
     setCanResend(false);
     const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     return () => clearInterval(interval);
@@ -73,25 +81,28 @@ const VerifyEmailForm = () => {
 
     if (!email) {
       toast.error("No email found. Please try again.");
-      router.push(mode === "verify-account" ? "/auth/register" : "/auth/forgot-password");
+      router.push(
+        mode === "verify-account" ? "/auth/register" : "/auth/forgot-password"
+      );
       return;
     }
-    console.log("email", email, mode);
+
     try {
       if (mode === "verify-account") {
         await verifyAccountVerifyOtp({ email, otp: code.join("") }).unwrap();
-        SuccessToast("Account verified successfully"); 
+        SuccessToast("Account verified successfully");
         router.push("/");
       }
 
       if (mode === "forgot-password") {
         await forgotPasswordVerifyOtp({ email, otp: code.join("") }).unwrap();
-        SuccessToast("OTP verified, reset your password"); 
+        SuccessToast("OTP verified, reset your password");
         router.push("/auth/reset-password");
       }
     } catch (err) {
-      const message = err?.data?.message || "Verification failed"; 
+      const message = err?.data?.message || "Verification failed";
       dispatch(SetVerifyAccountOtpError(message));
+      ErrorToast(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -101,13 +112,14 @@ const VerifyEmailForm = () => {
     try {
       if (!email) {
         toast.error("No email found. Please try again.");
-        router.push(mode === "verify-account" ? "/auth/register" : "/auth/forgot-password");
+        router.push(
+          mode === "verify-account" ? "/auth/register" : "/auth/forgot-password"
+        );
         return;
       }
 
       if (mode === "verify-account") {
         await verifyAccountResendOtp({ email }).unwrap();
-        localStorage.removeItem("verify_email");
       }
       if (mode === "forgot-password") {
         await forgotPasswordResendOtp({ email }).unwrap();
@@ -122,13 +134,15 @@ const VerifyEmailForm = () => {
   };
 
   return (
+     <Suspense fallback={<div>Loading...</div>}> 
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-sm border border-gray-200">
         <h1 className="text-2xl font-semibold text-gray-800 text-center mb-4">
           {mode === "verify-account" ? "Verify Your Email" : "Verify OTP"}
         </h1>
         <p className="text-center text-gray-500 text-sm mb-6">
-          We sent a 6-digit code to <span className="font-medium">{email}</span>.
+          We sent a 6-digit code to{" "}
+          <span className="font-medium">{email || "your email"}</span>.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -170,6 +184,7 @@ const VerifyEmailForm = () => {
         </div>
       </div>
     </div>
+    </Suspense>
   );
 };
 

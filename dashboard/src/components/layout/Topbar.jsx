@@ -16,8 +16,8 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         switch (path) {
             case '/':
                 return 'Dashboard';
-            case '/clients-&-plants':
-                return 'Clients & Plants';
+            case '/agent-management':
+                return 'Agent Management';
             case '/customer-management':
                 return 'Customer Management';
             case '/weekly-menu':
