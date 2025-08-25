@@ -3,7 +3,7 @@ import { baseUrl } from "@/redux/features/api/apiSlice";
 import Image from "next/image";
 import { MdBlockFlipped, MdOutlineRemoveRedEye } from "react-icons/md";
 
-const UserManagementTable = ({ paged = [], onBlockUnblockClick, isBlockingLoading }) => {
+const UserManagementTable = ({ paged = [], onBlockUnblockClick, isBlockingLoading , mood }) => {
   return (
     <>
       <table className="min-w-full text-sm">

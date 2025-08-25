@@ -16,7 +16,8 @@ const blockUnblockAuthUser = catchAsync(async (req: Request, res: Response) => {
 
 const createAccount = catchAsync(async (req: Request, res: Response) => {
   const body = req.body as IAccount;
-  const result = await AdminService.createAccount(body as IAccount);
+  const files = req.files;
+  const result = await AdminService.createAccount(files,body as IAccount);
   sendResponse(res, {
     statusCode: 200,
     success: true,

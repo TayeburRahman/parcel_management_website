@@ -57,7 +57,7 @@ export interface IAccount {
   phone_number?: string;
   password?: string;
   address?: string;
-  profile_image?: string;
+  profile_image?: string | null;
   role?: "CUSTOMERS" | "ADMIN" | "AGENT" | "SUPER_ADMIN";
   date_of_birth?: string;
   [key: string]: any;

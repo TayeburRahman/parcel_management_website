@@ -59,7 +59,7 @@ const blockUnblockUserZodSchema = z.object({
     email: z.string({
       required_error: "Email is required",
     }).email("Invalid email format"),
-    role: z.enum(["CUSTOMERS", "ADMIN", "SUPER_ADMIN"], {
+    role: z.enum(["CUSTOMERS", "ADMIN", "AGENT",  "SUPER_ADMIN"], {
       required_error: "Role is required",
     }),
     is_block: z.boolean({

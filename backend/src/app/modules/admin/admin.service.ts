@@ -7,10 +7,11 @@ import { ENUM_USER_ROLE } from "../../../enums/user";
 import Customers from "../customers/customers.model";
 import { IAccount, IAuth } from "../auth/auth.interface";
 import Agents from "../agents/agents.model";
+ 
 
-const createAccount = async (payload: IAccount) => {
+const createAccount = async (files: any, payload: IAccount) => {
   const { role, password, email, ...other } = payload;
-
+  
   if (role !== ENUM_USER_ROLE.CUSTOMERS && role !== ENUM_USER_ROLE.AGENT) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Only Customer or Agent registration is allowed!");
   }
@@ -19,37 +20,46 @@ const createAccount = async (payload: IAccount) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email, Password, and Confirm Password are required!");
   }
 
+ 
+  let profile_image: string | null = null;
+  if (files?.profile_image?.[0]) {
+    profile_image = `/images/profile/${files.profile_image[0].filename}`;
+  } 
+
   const existingAuth = await Auth.findOne({ email }).lean();
   if (existingAuth?.isActive) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email already exists");
   }
 
+ 
   if (existingAuth && !existingAuth.isActive) {
     await Promise.all([
-      existingAuth.role === ENUM_USER_ROLE.CUSTOMERS && Customers.deleteOne({ authId: existingAuth._id }),
-      existingAuth.role === ENUM_USER_ROLE.AGENT && Agents.deleteOne({ authId: existingAuth._id }),
+      existingAuth.role === ENUM_USER_ROLE.CUSTOMERS &&
+        (await Customers.deleteOne({ authId: existingAuth._id })),
+      existingAuth.role === ENUM_USER_ROLE.AGENT &&
+        (await Agents.deleteOne({ authId: existingAuth._id })),
       Auth.deleteOne({ email }),
     ]);
   }
-
-  const auth = {
+ 
+  const authData = {
     role,
     name: other.name,
     email,
     password,
+    profile_image,
     isActive: true,
-    expirationTime: Date.now() + 3 * 60 * 1000,
   };
 
-  let createAuth = await Auth.create(auth);
+  const createAuth = await Auth.create(authData);
   if (!createAuth) {
     throw new ApiError(500, "Failed to create auth account");
   }
-
+ 
   other.authId = createAuth._id;
   other.email = email;
+  other.profile_image = profile_image;
 
-  // Role-based user creation
   let result;
   switch (role) {
     case ENUM_USER_ROLE.CUSTOMERS:
@@ -58,15 +68,12 @@ const createAccount = async (payload: IAccount) => {
     case ENUM_USER_ROLE.AGENT:
       result = await Agents.create(other);
       break;
-
     default:
       throw new ApiError(400, "Invalid role provided!");
   }
 
-  const message = "Account has been created successfully.";
-  return { result, role, message };
-};
-
+  return { result, role, message: "Account has been created successfully." };
+}; 
 const deleteAccount = async (email: string) => {
   const existingAuth = await Auth.findOne({ email }).lean();
   if (!existingAuth) {
@@ -151,8 +158,7 @@ const getAccounts = async (filters: { role?: string; searchTerm?: string; page?:
 
 const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
   const { role, email, is_block } = payload;
-  console.log("Blocking/Unblocking User:", role, email, is_block);
-
+  console.log("Blocking/Unblocking User====:", role, email, is_block);
 
   const updatedAuth = await Auth.findOneAndUpdate(
     { email },
@@ -160,30 +166,46 @@ const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
     { new: true, runValidators: true }
   ).select("role name email is_block");
 
-  console.log("Updated Auth:", updatedAuth);
-
   if (!updatedAuth) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
   const statusValue = is_block ? "deactivate" : "active";
-
-  if (role === ENUM_USER_ROLE.CUSTOMERS) {
-    const customer = await Customers.findOneAndUpdate(
-      { authId: updatedAuth._id },
-      { $set: { status: statusValue } }
-    );
-    if (!customer) throw new ApiError(httpStatus.NOT_FOUND, "Customer not found");
-  } else if (role === ENUM_USER_ROLE.ADMIN || role === ENUM_USER_ROLE.SUPER_ADMIN) {
-    const admin = await Admin.findOneAndUpdate(
-      { authId: updatedAuth._id },
-      { $set: { status: statusValue } }
-    );
-    if (!admin) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+   console.log('role', role, updatedAuth)
+  switch (role) {
+    case ENUM_USER_ROLE.CUSTOMERS: {
+      const customer = await Customers.findOneAndUpdate(
+        { authId: updatedAuth._id },
+        { $set: { status: statusValue } }
+      );
+      if (!customer) throw new ApiError(httpStatus.NOT_FOUND, "Customers not found");
+      break;
+    }
+    case ENUM_USER_ROLE.AGENT: {
+      const agent = await Agents.findOneAndUpdate(
+        { authId: updatedAuth._id },
+        { $set: { status: statusValue } }
+      );
+      if (!agent) throw new ApiError(httpStatus.NOT_FOUND, "Agent not found");
+      break;
+    }
+    case ENUM_USER_ROLE.ADMIN:
+    case ENUM_USER_ROLE.SUPER_ADMIN: {
+      const admin = await Admin.findOneAndUpdate(
+        { authId: updatedAuth._id },
+        { $set: { status: statusValue } }
+      );
+      if (!admin) throw new ApiError(httpStatus.NOT_FOUND, "Admin not found");
+      break;
+    }
+    default:
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid user role");
   }
 
+  console.log("Updated Auth:", updatedAuth);
   return updatedAuth;
 };
+
 // =============Parcels=========================
 export const AdminService = {
   blockUnblockAuthUser,

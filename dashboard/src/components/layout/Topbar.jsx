@@ -21,8 +21,8 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             case '/customer-management':
                 return 'Customer Management';
             case '/weekly-menu':
-                return 'Weekly Menu';
-            case '/nutrition-info':
+                return 'Parcel Managment';
+            case '/parcel-managment':
                 return 'Nutrition Info';
             case '/reports':
                 return 'Reports';

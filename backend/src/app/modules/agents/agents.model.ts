@@ -41,8 +41,8 @@ const AgentsSchema = new Schema<IAgents>(
       default: null,
     },
     vehicleType: {
-      type: Boolean,
-      default: false,
+      type: String,
+      default: null,
     },
     profile_image: {
       type: String,

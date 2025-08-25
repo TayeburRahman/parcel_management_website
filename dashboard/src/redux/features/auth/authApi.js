@@ -44,10 +44,8 @@ export const authApi = apiSlice.injectEndpoints({
                         dispatch(SetLoginError("You are not allowed to login here"));
                     }
                 } catch (err) {
-                    const message = err?.error?.data?.message || "Something went wrong";
-
-                    dispatch(SetLoginError(message));
-
+                    const message = err?.error?.data?.message || "Something went wrong"; 
+                    dispatch(SetLoginError(message)); 
                 }
             },
         }),

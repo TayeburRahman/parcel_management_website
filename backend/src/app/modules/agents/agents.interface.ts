@@ -11,7 +11,7 @@ export interface IAgents extends Document {
   email: string;
   address?: string | null;
   phone_number?: string | null;
-  vehicleType: boolean;
+  vehicleType: String;
   profile_image?: string | null;
   location?: ILocation;
   assignedParcels: mongoose.Schema.Types.ObjectId[];

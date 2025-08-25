@@ -22,14 +22,22 @@ export const customerApi = apiSlice.injectEndpoints({
       invalidatesTags: ['get-accounts'], 
     }),
     createAccount: builder.mutation({
-      query: (data) => ({
-        url: `/auth/create-account`,
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['get-accounts'],
+      query: (data) => {
+        const isFormData = data instanceof FormData;
+    
+        console.log("isFormData", isFormData);
+    
+        return {
+          url: `/auth/create-account`,
+          method: "POST",
+          body: data,
+          headers: isFormData ? {} : { "Content-Type": "application/json" },
+        };
+      },
+      invalidatesTags: ["get-accounts"],
     }),
-  }),
+    
+  }), 
 });
 
 export const { useGetAccountsQuery, useBlockUnblockUserMutation, useCreateAccountMutation } = customerApi;

@@ -114,7 +114,7 @@ const deleteShipmentParcel = async (parcelId: string) => {
 };
 
 const getAllShipmentParcels = async (queryParams: IQueryParams) => {
-
+     console.log('createShipmentParcel', queryParams )
     if (queryParams.searchTerm) {
         delete queryParams.page
     }
@@ -141,6 +141,8 @@ const getAllShipmentParcels = async (queryParams: IQueryParams) => {
 
     const parcels = await parcelsQuery.exec();
     const pagination = await queryBuilder.countTotal();
+
+    console.log("pp",parcels)
 
     return { parcels, pagination };
 };

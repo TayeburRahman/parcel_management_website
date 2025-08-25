@@ -69,6 +69,7 @@ const ProfilePage = () => {
       const formData = new FormData();
       formData.append("profile_image", file);
 
+      
       try {
           await updateProfile(formData).unwrap(); 
         SuccessToast("Profile image updated successfully!");

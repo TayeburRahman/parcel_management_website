@@ -5,9 +5,8 @@ import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { TbLayoutDashboard, TbReportSearch } from "react-icons/tb";
 import Topbar from '@/components/layout/Topbar';
-import Sidebar from '@/components/layout/Sidebar';
-import { FaNutritionix } from 'react-icons/fa';
-import { PiUsersThree } from 'react-icons/pi';
+import Sidebar from '@/components/layout/Sidebar'; 
+import { PiPackageDuotone, PiUsersThree } from 'react-icons/pi';
 import { MdOutlineManageAccounts, MdOutlineRestaurantMenu } from 'react-icons/md';
 import PrivateRoute from "@/components/privet-route/PrivetRoute";
 
@@ -15,8 +14,7 @@ const adminItems = [
     { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
     { label: "Agent Management", href: "/agent-management", icon: <PiUsersThree size={20} /> },
     { label: "Customer Management", href: "/customer-management", icon: <MdOutlineManageAccounts size={20} /> },
-    { label: "Weekly Menu", href: "/weekly-menu", icon: <MdOutlineRestaurantMenu size={20} /> },
-    { label: "Nutrition Info", href: "/nutrition-info", icon: <FaNutritionix size={20} /> },
+    { label: "Parcel managment", href: "/parcel-managment", icon: <PiPackageDuotone size={20} /> }, 
     { label: "Reports", href: "/reports", icon: <TbReportSearch size={20} /> },
 ];
 

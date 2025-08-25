@@ -46,7 +46,8 @@ router.patch(
 router.post(
   "/create-account",
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-  validateRequest(AuthValidation.create),
+  uploadFile(),  
+  validateRequest(AuthValidation.create), 
   AdminController.createAccount
 );
 router.get(

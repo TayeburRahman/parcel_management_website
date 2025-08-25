@@ -1,7 +1,6 @@
 "use client";
 import PageContainer from "@/components/container/PageContainer";
-import ConfirmModal from "@/components/modal/confirm-modal/ConfirmModal";
-import UserViewModal from "@/components/modal/user-view-modal/UserViewModal";
+import ConfirmModal from "@/components/modal/confirm-modal/ConfirmModal"; 
 import Pagination from "@/components/pagination/Pagination";
 import UserManagementTable from "@/components/table/user-management-table/UserManagementTable";
 import { useGetAccountsQuery, useBlockUnblockUserMutation } from "@/redux/features/customer/customerApi";
