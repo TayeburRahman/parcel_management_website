@@ -228,13 +228,8 @@ export const authApi = apiSlice.injectEndpoints({
             }),
             async onQueryStarted(arg, { queryFulfilled, dispatch }) {
               try {
-                const { data } = await queryFulfilled;
-                console.log("Profile update response:", data);
-           
-                if (data?.data) {
-                  dispatch(SetUserDetails({ user: data.data }));  
-                  SuccessToast("Profile updated successfully!");
-                }
+                const { data } = await queryFulfilled;  
+                window.location.reload();
               } catch (err) {
                 console.error("Profile update error:", err);
           

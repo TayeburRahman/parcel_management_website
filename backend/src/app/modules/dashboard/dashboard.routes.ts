@@ -52,5 +52,8 @@ router.get("/assigned-parcels",
     auth(ENUM_USER_ROLE.AGENT),
     AgentController.getMyAssailedParcels
 );
+router.get("/export-pdf",
+    DashboardController.exportReports
+);
 // ============================
 export const DashboardRoutes = router;

@@ -6,7 +6,7 @@ import { useGetParcelByIdQuery } from "@/redux/features/parcel/parcelApi";
 import TableLoader from "@/components/loader/TableLoader";
 import { baseUrl } from "@/redux/features/api/apiSlice";
 import { format } from "date-fns";
-import StaticLocationMap from "@/components/map/StaticLocationMap";
+import DynamicLocationMap from "@/components/map/DynamicLocationMap";
 
 const ParcelDetailsPage = () => {
   const { id } = useParams();
@@ -37,6 +37,12 @@ const ParcelDetailsPage = () => {
     lon: parcel.coordinates?.delivery.lng,
     address: parcel.deliveryAddress,
   };
+
+  const agentLocation = parcel.agentId?.location?.coordinates ? {
+    lat: parcel.agentId.location.coordinates[1],
+    lon: parcel.agentId.location.coordinates[0],
+    name: parcel.agentId.name,
+  } : null;
 
   return (
     <PageContainer>
@@ -155,7 +161,7 @@ const ParcelDetailsPage = () => {
         </div>
         <div className="bg-white p-6 rounded-md shadow-md">
           <h2 className="text-xl font-bold mb-4">Location Map</h2>
-          <StaticLocationMap pickup={pickupLocation} delivery={deliveryLocation} />
+          <DynamicLocationMap pickup={pickupLocation} delivery={deliveryLocation} agentLocation={agentLocation} />
         </div>
       </div>
     </PageContainer>

@@ -11,7 +11,10 @@ import sendEmail from "../../../utils/sendEmail";
 import Customers from "../customers/customers.model";
 import { parcelEmailTemplate } from "../../../mails/customer.booking";
 import path from "path";
+const fs = require("fs");
+const PDFDocument = require("pdfkit");
 import config from "../../../config";
+import { Response } from "express";
 
 // =============Parcels=========================
 const generateShipmentId = () => {
@@ -70,7 +73,6 @@ const createShipmentParcel = async (payload: IParcel, user: IReqUser) => {
         throw new AppError(400, error?.message || "Failed to create parcel");
     }
 };
-
 
 const updateShipmentParcel = async (parcelId: string,
     payload: Partial<IParcel>) => {
@@ -178,7 +180,68 @@ const getParcelsDetails = async (parcelId: string) => {
     return parcel;
 }
 
-// ====Customer===================================== 
+const exportReports = async (type: "weekly" | "monthly" | "yearly", res: Response) => {
+    try {
+        const now = new Date();
+        let startDate: Date;
+
+        console.log("====", type)
+
+        // Weekly: Monday as first day
+        switch (type) {
+            case "weekly": {
+                const day = now.getDay() || 7; // Sunday = 0, convert to 7
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
+                break;
+            }
+            case "monthly":
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                break;
+            case "yearly":
+                startDate = new Date(now.getFullYear(), 0, 1);
+                break;
+            default:
+                throw new AppError(400, "Invalid report type");
+        }
+
+        // Fetch parcels
+        const parcels = await Parcel.find({ createdAt: { $gte: startDate } })
+            .populate("customerId", "name email phone_number")
+            .populate("agentId", "name email phone_number");
+
+        // Create PDF
+        const doc = new PDFDocument({ margin: 30, size: "A4" });
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename=parcel_report_${type}.pdf`);
+
+        doc.pipe(res);
+
+        doc.fontSize(20).text(`Parcel Report - ${type.toUpperCase()}`, { align: "center" });
+        doc.moveDown();
+        doc.fontSize(12).text(`Report Date: ${now.toLocaleDateString()}`);
+        doc.text(`Period: ${startDate.toLocaleDateString()} - ${now.toLocaleDateString()}`);
+        doc.text(`Total Parcels: ${parcels.length}`);
+        doc.moveDown();
+
+        parcels.forEach((parcel, index) => {
+            doc.fontSize(10).text(`Parcel ${index + 1}:`);
+            doc.text(`  Shipment ID: ${parcel.shipmentId}`);
+            doc.text(`  Customer: ${parcel.customerId ? (parcel.customerId as any).name : "N/A"}`);
+            doc.text(`  Pickup: ${parcel.pickupAddress}`);
+            doc.text(`  Delivery: ${parcel.deliveryAddress}`);
+            doc.text(`  Type: ${parcel.parcelType}`);
+            doc.text(`  Status: ${parcel.status}`);
+            doc.moveDown(0.5);
+        });
+
+        doc.end();
+    } catch (err) {
+        console.error("PDF export error:", err);
+        throw new AppError(400, "Error exporting PDF");
+    }
+};
+
 
 export const DashboardService = {
     createShipmentParcel,
@@ -186,7 +249,8 @@ export const DashboardService = {
     deleteShipmentParcel,
     getAllShipmentParcels,
     assignedParcelAgent,
-    getParcelsDetails
+    getParcelsDetails,
+    exportReports
 };
 
 

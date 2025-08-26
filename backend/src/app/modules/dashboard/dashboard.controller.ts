@@ -100,6 +100,16 @@ const getParcelsDetails = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const exportReports = catchAsync(async (req: Request, res: Response) => {
+    const { type } = req.query as { type: "weekly" | "monthly" | "yearly" };
+    console.log("req.query", req.query)
+
+    await DashboardService.exportReports(type as any, res as any);
+});
+
+
+
+
 
 export const DashboardController = {
     createShipmentParcel,
@@ -107,5 +117,6 @@ export const DashboardController = {
     deleteShipmentParcel,
     getAllShipmentParcels,
     assignedParcelAgent,
-    getParcelsDetails
+    getParcelsDetails,
+    exportReports
 };

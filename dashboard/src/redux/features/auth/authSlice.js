@@ -32,7 +32,7 @@ const authSlice = createSlice({
         state.token = accessToken;
         localStorage.setItem("token", accessToken);
       }
-      if (user) {
+      if (user) { 
         localStorage.setItem("user", JSON.stringify(user));
       }
     },

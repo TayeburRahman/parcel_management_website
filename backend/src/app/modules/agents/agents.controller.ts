@@ -16,8 +16,17 @@ const getMyAssailedParcels = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-
+const getAllAgentLocations = catchAsync(async (req: Request, res: Response) => {
+    const result = await AgentService.getAllAgentLocations();
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Agent locations retrieved successfully",
+        data: result,
+    });
+});
 
 export const AgentController = {
-    getMyAssailedParcels
+    getMyAssailedParcels,
+    getAllAgentLocations
 };

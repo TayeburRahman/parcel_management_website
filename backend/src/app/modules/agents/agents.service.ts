@@ -88,9 +88,20 @@ const updateAgentLocation = async (
   }
 };
 
+const getAllAgentLocations = async () => {
+  const agents = await Agents.find({}, "name location").lean();
+  return agents.map(agent => ({
+    _id: agent._id,
+    name: agent.name,
+    latitude: agent.location?.coordinates[1],
+    longitude: agent.location?.coordinates[0],
+  }));
+};
+
 export const AgentService = {
   getMyAssailedParcels,
   updateParcelStatusByAgent,
   updateAgentLocation,
+  getAllAgentLocations,
 };
 

@@ -71,11 +71,13 @@ const ProfilePage = () => {
 
       
       try {
-          await updateProfile(formData).unwrap(); 
+          const updatedUser = await updateProfile(formData).unwrap();
+        dispatch(SetUserDetails({ user: updatedUser }));
         SuccessToast("Profile image updated successfully!");
       } catch (err) {
         console.error(err);
-        dispatch(SetRegisterError(message || "Failed to update profile image!")); 
+        const message = err?.data?.message || "Failed to update profile image!";
+        dispatch(SetRegisterError(message));
       }
     }
   };
@@ -90,12 +92,10 @@ const ProfilePage = () => {
 
     if (fileInputRef.current?.files?.[0]) {
       formData.append("profile_image", fileInputRef.current.files[0]);
-    }
-    console.log('=======')
+    } 
 
     try {
-      const updatedUser = await updateProfile(formData).unwrap();
-      dispatch(SetUserDetails({ user: updatedUser }));
+      const updatedUser = await updateProfile(formData).unwrap(); 
       SuccessToast("Profile updated successfully!");
     } catch (err) {
       console.error(err);
@@ -115,6 +115,8 @@ const ProfilePage = () => {
       ? previewImage
       : `${baseUrl}${previewImage}`
     : "/images/avatar.png";
+
+    console.log("imageUrl", imageUrl)
 
   return (
     <PageContainer>

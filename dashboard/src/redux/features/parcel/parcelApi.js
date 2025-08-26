@@ -61,7 +61,26 @@ export const parcelApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["parcels_details"],
     }),
+   exportPdf: builder.query({
+  query: ({ type, date }) => ({
+    url: `/dashboard/export-pdf?type=${type}${date ? `&date=${date}` : ""}`,
+  }),
+  responseHandler: async (response) => { 
+    const blob = await response.blob();
+    return blob;
+  },
+}),
   }),
 });
 
-export const { useGetParcelsQuery, useGetMyParcelsQuery, useGetAssignedParcelsQuery, useCreateParcelMutation, useAssignAgentMutation, useUpdateParcelMutation, useDeleteParcelMutation, useGetParcelByIdQuery } = parcelApi;
+export const { 
+  useGetParcelsQuery, 
+  useGetMyParcelsQuery, 
+  useGetAssignedParcelsQuery, 
+  useCreateParcelMutation, 
+  useAssignAgentMutation, 
+  useUpdateParcelMutation, 
+  useDeleteParcelMutation, 
+  useGetParcelByIdQuery, 
+  useLazyExportPdfQuery 
+} = parcelApi;

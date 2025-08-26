@@ -5,6 +5,7 @@ import Pagination from "@/components/pagination/Pagination";
 import ParcelTable from "@/components/table/parcel-table/ParcelTable";
 import { useGetAssignedParcelsQuery } from "@/redux/features/parcel/parcelApi";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { FiSearch } from "react-icons/fi";
 import TableLoader from "@/components/loader/TableLoader";
 import "react-datepicker/dist/react-datepicker.css";
@@ -33,7 +34,6 @@ const AssignedParcelPage = () => {
     });
 
     socket.on("update_parcel_status_success", (data) => {
-      console.log('====================', data)
       toast.success(data.message);
     });
 
@@ -47,6 +47,43 @@ const AssignedParcelPage = () => {
       socket.off("update_parcel_status_error");
     };
   }, [refetch]);
+
+  const { user } = useSelector((state) => state.auth); // Get user from Redux store
+  const agentId = user?._id; // Assuming agent ID is in user._id
+
+  useEffect(() => {
+    let watchId;
+
+    if (agentId && navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("Current location:", latitude, longitude);
+          socket.emit("agent_location_update", { agentId, location: { lat: latitude, lng: longitude } });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast.error("Failed to get current location. Please enable location services.");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else if (!agentId) {
+      console.warn("Agent ID not available. Cannot track location.");
+    } else {
+      console.warn("Geolocation is not supported by this browser.");
+      toast.error("Geolocation is not supported by your browser.");
+    }
+
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [agentId]); // Re-run effect if agentId changes
 
   return (
     <PageContainer>

@@ -15,8 +15,7 @@ const adminItems = [
     { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
     { label: "Agent Management", href: "/agent-management", icon: <PiUsersThree size={20} /> },
     { label: "Customer Management", href: "/customer-management", icon: <MdOutlineManageAccounts size={20} /> },
-    { label: "Parcel Management", href: "/parcel-managements", icon: <PiPackageDuotone size={20} /> }, 
-    { label: "Reports", href: "/reports", icon: <TbReportSearch size={20} /> },
+    { label: "Parcel Management", href: "/parcel-managements", icon: <PiPackageDuotone size={20} /> },  
 ];
 
 const customersItems = [ 

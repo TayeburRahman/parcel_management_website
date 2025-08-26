@@ -32,18 +32,9 @@ const ChangePassTab = ({
               placeholder="Enter your current password"
               register={register}
               errors={errors}
+              disabled={true}   
               validation={{ required: "Current Password is required" }}
             />
-            <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:bg-gray-100 p-1 rounded-full transition-colors"
-              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-            >
-              {showCurrentPassword ? (
-                <PiEyeLight className="text-primary" size={18} />
-              ) : (
-                <PiEyeSlash className="text-primary" size={18} />
-              )}
-            </div>
           </div>
         </div>
 
@@ -60,6 +51,7 @@ const ChangePassTab = ({
               placeholder="Enter your new password"
               register={register}
               errors={errors}
+              disabled={true}   
               validation={{
                 required: "New Password is required",
                 minLength: {
@@ -68,16 +60,6 @@ const ChangePassTab = ({
                 },
               }}
             />
-            <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:bg-gray-100 p-1 rounded-full transition-colors"
-              onClick={() => setShowNewPassword(!showNewPassword)}
-            >
-              {showNewPassword ? (
-                <PiEyeLight className="text-primary" size={18} />
-              ) : (
-                <PiEyeSlash className="text-primary" size={18} />
-              )}
-            </div>
           </div>
         </div>
 
@@ -94,21 +76,12 @@ const ChangePassTab = ({
               placeholder="Confirm your new password"
               register={register}
               errors={errors}
+              disabled={true}   
               validation={{
                 required: "Confirm New Password is required",
                 validate: (value) => value === watch("newPassword") || "Passwords do not match",
               }}
             />
-            <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:bg-gray-100 p-1 rounded-full transition-colors"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? (
-                <PiEyeLight className="text-primary" size={18} />
-              ) : (
-                <PiEyeSlash className="text-primary" size={18} />
-              )}
-            </div>
           </div>
         </div>
 
@@ -116,7 +89,8 @@ const ChangePassTab = ({
         <div className="pt-4 border-t border-gray-200">
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-white py-2 px-6 rounded-sm text-xs font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+            disabled    
+            className="w-full bg-gray-400 cursor-not-allowed py-2 px-6 rounded-sm text-xs font-semibold flex items-center justify-center gap-2"
           >
             <Shield className="w-3 h-3" />
             Save Changes

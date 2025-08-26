@@ -32,7 +32,6 @@ const socket = (io: Server) => {
       }
     });
 
-    // New handler for agent location updates
     socket.on('agent_location_update', async (data: { agentId: string; location: { lat: number; lng: number } }) => {
       try {
         const { agentId, location } = data;
@@ -40,7 +39,6 @@ const socket = (io: Server) => {
         await AgentService.updateAgentLocation(agentId, location.lat, location.lng);
         io.emit('agent_location_updated', { agentId, location });
       } catch (error) {
-        // Optionally emit an error back to the agent
         socket.emit('agent_location_error', { error: 'Failed to update location' });
       }
     });
