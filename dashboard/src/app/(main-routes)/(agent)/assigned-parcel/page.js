@@ -9,6 +9,7 @@ import { FiSearch } from "react-icons/fi";
 import TableLoader from "@/components/loader/TableLoader";
 import "react-datepicker/dist/react-datepicker.css";
 import socket from "@/socket/socket";
+import toast from "react-hot-toast";
 
 const AssignedParcelPage = () => {
   const pageSize = 10;
@@ -31,12 +32,21 @@ const AssignedParcelPage = () => {
       refetch();
     });
 
+    socket.on("update_parcel_status_success", (data) => {
+      console.log('====================', data)
+      toast.success(data.message);
+    });
+
+    socket.on("update_parcel_status_error", (data) => {
+      toast.error(data.error);
+    });
+
     return () => {
       socket.off("parcel_status_updated");
+      socket.off("update_parcel_status_success");
+      socket.off("update_parcel_status_error");
     };
   }, [refetch]);
-
-  console.log("data", data)
 
   return (
     <PageContainer>

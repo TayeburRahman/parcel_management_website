@@ -1,18 +1,18 @@
 import { jwtDecode } from "jwt-decode";
 
 class SessionHelper {
-  setToken(token) {
+  setToken = (token) => {
     localStorage.setItem("token", token);
   }
 
-  getToken() {
+  getToken = () => {
     if (typeof window !== "undefined" && window.localStorage) {
       return localStorage.getItem("token");
     }
     return "";
   }
 
-  getUserInfo() {
+  getUserInfo = () => {
     const token = this.getToken();
     if (token) {
       const decodedData = jwtDecode(token);
@@ -24,44 +24,44 @@ class SessionHelper {
     }
   }
 
-  isLoggedIn() {
+  isLoggedIn = () => {
     const token = this.getToken();
     return !!token;
   }
 
-  setEmail(email) {
+  setEmail = (email) => {
     localStorage.setItem("email", email);
   }
 
-  getEmail() {
+  getEmail = () => {
     return localStorage.getItem("email");
   }
-  setForgetEmail(email) {
+  setForgetEmail = (email) => {
     localStorage.setItem("forgot_email", email);
   }
 
-  setVerifyEmail(email) {
+  setVerifyEmail = (email) => {
     localStorage.setItem("verifyEmail", email);
   }
 
-  getVerifyEmail() {
+  getVerifyEmail = () => {
     if (typeof window !== "undefined" && window.localStorage) {
       return localStorage.getItem("verifyEmail");
     }
   }
-  setOtp(otp) {
+  setOtp = (otp) => {
     localStorage.setItem("otp", otp);
   }
 
-  getOtp() {
+  getOtp = () => {
     return localStorage.getItem("otp");
   }
 
-  setAuthId(authId) {
+  setAuthId = (authId) => {
     localStorage.setItem("authId", authId);
   }
 
-  getAuthId() {
+  getAuthId = () => {
     return localStorage.getItem("authId");
   }
 

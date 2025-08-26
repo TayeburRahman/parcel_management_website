@@ -11,12 +11,12 @@ const ParcelTable = ({ paged, handleDelete, onAssignAgentClick, onStatusUpdate }
     return <TableLoader />;
   }
 
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isAgent = user?.role === 'AGENT';
+
   const handleViewClick = (parcel) => {
     router.push(`/parcel-management/${parcel._id}`);
   };
-
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
-  const isAgent = user?.role === 'AGENT';
 
   return (
     <table className="min-w-full divide-y divide-gray-200">

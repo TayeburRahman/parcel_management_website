@@ -33,6 +33,6 @@ export const apiSlice = createApi({
 
     return result;
   },
-  tagTypes: ["get-accounts", "get-parcels"],
+  tagTypes: ["get-accounts", "get-parcels", "get-my-parcels", "get-assigned-parcels", "create-parcel", "assigned-parcel-agent", "update-parcel", "delete-parcel", "parcels_details"],
   endpoints: () => ({}),
 });

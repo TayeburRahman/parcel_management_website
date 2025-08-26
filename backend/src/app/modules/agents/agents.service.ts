@@ -1,6 +1,7 @@
 import Parcel from '../dashboard/dashboard.model';
 import { IParcel, IQueryParams } from '../dashboard/dashboard.interface';
 import QueryBuilder from '../../../builder/QueryBuilder';
+import Agents from './agents.model';
 
 const getMyAssailedParcels = async (agentId: string, queryParams: IQueryParams) => {
 
@@ -35,6 +36,7 @@ const updateParcelStatusByAgent = async (
   status: string
 ) => {
   try {
+    console.log('===', status)
     const allowedStatuses = ["PENDING", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "FAILED"];
     if (!allowedStatuses.includes(status)) {
       throw new Error('Invalid status update.');
@@ -59,8 +61,36 @@ const updateParcelStatusByAgent = async (
   }
 };
 
+const updateAgentLocation = async (
+  agentId: string,
+  lat: number,
+  lng: number
+) => {
+  try {
+    const updatedAgent = await Agents.findOneAndUpdate(
+      { _id: agentId },
+      {
+        location: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedAgent) {
+      throw new Error('Agent not found.');
+    }
+
+    return updatedAgent;
+  } catch (error: any) {
+    throw new Error(`Error updating agent location: ${error.message}`);
+  }
+};
+
 export const AgentService = {
   getMyAssailedParcels,
-  updateParcelStatusByAgent
+  updateParcelStatusByAgent,
+  updateAgentLocation,
 };
 

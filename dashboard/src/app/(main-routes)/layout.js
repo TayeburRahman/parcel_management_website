@@ -9,6 +9,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { PiPackageDuotone, PiUsersThree } from 'react-icons/pi';
 import { MdOutlineManageAccounts, MdOutlineRestaurantMenu } from 'react-icons/md';
 import PrivateRoute from "@/components/privet-route/PrivetRoute";
+import { Toaster } from "react-hot-toast";
 
 const adminItems = [
     { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
@@ -68,6 +69,7 @@ export default function MainRouteLayout({ children }) {
     return (
         <PrivateRoute allowedRoles={allowedRoles}>
             <div className="min-h-screen flex relative"> 
+                <Toaster />
                 <Sidebar
                     menuItems={menuItems}
                     setSettingsOpen={setSettingsOpen}

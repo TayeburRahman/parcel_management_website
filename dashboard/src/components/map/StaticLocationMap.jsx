@@ -51,7 +51,11 @@ const RoutingMachine = ({ pickup, delivery }) => {
       }
     }).addTo(map);
 
-    return () => map.removeControl(routingControl);
+    return () => {
+      if (map.getContainer()) {
+        map.removeControl(routingControl);
+      }
+    };
   }, [map, pickup, delivery]);
 
   return null;
