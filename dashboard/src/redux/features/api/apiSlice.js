@@ -3,9 +3,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getToken } from "@/helper/SessionHelper";
 import { SetLoginError } from "../auth/authSlice";
 // live Ip 
-export const baseUrl = "http://13.51.233.34:5003";
+// export const baseUrl = "http://13.51.233.34:5003";
 // local IP 
-// export const baseUrl = "http://10.10.20.11:5000";
+export const baseUrl = "http://10.10.20.11:5000";
  
 
 const baseQuery = fetchBaseQuery({
