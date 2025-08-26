@@ -1,47 +1,81 @@
-# Backend Setup and Usage
+# Parcel Management System
 
-This document outlines the steps to set up and run the backend for the Parcel Management System.
+A MERN stack courier and parcel management system for logistics companies.
+Users can book parcels, assign delivery agents, track parcels in real-time, and manage delivery statuses.
 
-## Project Setup
+---
 
-1.  **Install Dependencies**:
-    Navigate to the `backend` directory and install the necessary Node.js packages:
+## Live Site
 
-    ```bash
-    npm install
-    ```
+[Website Live URL](http://13.51.233.34:4000)
 
-2.  **Environment Variables (`.env`)**:
-    Create a `.env` file in the `backend` directory. This file will store sensitive information and configuration variables. You will need to populate this file with your specific environment variables (e.g., database connection strings, JWT secrets, port numbers).
+---
 
-    Example (replace with your actual values):
+## Test Accounts
 
-    ```
-    PORT=4000
-    DATABASE_URL=your_database_connection_string
-    JWT_SECRET=your_jwt_secret
-    # Add other necessary environment variables here
-    ```
+- **Admin:** [admin@gmail.com](mailto:admin@gmail.com) / 12345678
+- **Agent:** [agent@gmail.com](mailto:agent@gmail.com) / 12345678
+- **Customer:** [tayebrayhan101@gmail.com](mailto:tayebrayhan101@gmail.com) / 12345678
 
-3.  **CORS Configuration**:
-    The backend is configured to handle Cross-Origin Resource Sharing (CORS). The `src/app.ts` file already includes configurations for `http://localhost:3000` and `http://13.51.233.34:4000`. If your frontend is hosted on a different URL, you may need to add it to the `cors` origin list in `src/app.ts`.
+---
 
-## Running the Backend
+## Setup Instructions
 
-To start the backend server, run the following command from the `backend` directory:
+### Backend
 
-```bash
-npm start
-```
+1. Navigate to backend folder:
 
-The backend will typically run on port `4000`.
+   ```bash
+   cd backend
+   ```
 
-## Live Deployment In AWS
+2. Install dependencies:
 
-The live website is hosted at: `http://13.51.233.34:4000`
+   ```bash
+   npm install
+   ```
 
-## Test Credentials (for development/testing purposes)
+3. Update `src/app.ts` to allow CORS for frontend URL.
+4. Start backend server:
 
-- **Admin**: `admin@gmail.com` / `12345678`
-- **Agent**: `agent@gmail.com` / `12345678`
-- **Customer**: `tayebrayhan101@gmail.com` / `12345678`
+   ```bash
+   npm run dev
+   ```
+
+### Frontend
+
+1. Navigate to frontend folder:
+
+   ```bash
+   cd dashboard
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Update backend URL in `redux/fetcher/apiSlice.js`.
+4. Update `next.config.js` for images to allow backend IP or localhost.
+5. Run frontend:
+
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## Features
+
+- **Customer:** Register/Login, Book parcel, View booking history, Track parcel on map
+- **Delivery Agent:** View assigned parcels, Update parcel status, Optimized delivery route (Google Maps API)
+- **Admin:** Dashboard with metrics, Assign agents, View users/bookings, Export reports - Not complete (CSV/PDF)
+
+---
+
+## Notes
+
+- Make sure backend is running before starting frontend.
+- All sensitive keys (DB connection, JWT secret) must be added in `.env`.
+- The site is hosted on AWS with the live frontend at `http://13.51.233.34:4000`.
