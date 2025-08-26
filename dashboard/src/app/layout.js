@@ -1,5 +1,4 @@
 "use client"
-
 import './globals.css'; 
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
