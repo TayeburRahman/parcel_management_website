@@ -1,17 +1,18 @@
-"use client"; 
-import { user } from '@/data/data';
+"use client";  
 import Image from 'next/image';
 import Link from 'next/link';
 import { IoMdNotificationsOutline } from 'react-icons/io';
 import { IoMenuOutline } from "react-icons/io5"; 
 import { usePathname } from 'next/navigation'; 
 import { useState, useEffect } from 'react'; 
+import { baseUrl } from '@/redux/features/api/apiSlice';
+import { useSelector } from 'react-redux';
 
 const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const pathname = usePathname();
     const [pageTitle, setPageTitle] = useState("Dashboard");
-
-    // Define titles for different paths
+      const { user } = useSelector((state) => state.auth);
+ 
     const getTitleFromPathname = (path) => {
         switch (path) {
             case '/':
@@ -21,8 +22,8 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             case '/customer-management':
                 return 'Customer Management';
             case '/weekly-menu':
-                return 'Parcel Managment';
-            case '/parcel-managment':
+                return 'Parcel Management';
+            case '/parcel-managements':
                 return 'Nutrition Info';
             case '/reports':
                 return 'Reports';
@@ -39,6 +40,8 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     useEffect(() => {
         setPageTitle(getTitleFromPathname(pathname));
     }, [pathname]);
+
+    console.log("===", user)
 
     return (
         <div className="bg-layout-bg h-20 flex items-center px-4 sticky top-0 z-30 justify-between md:justify-end">
@@ -67,7 +70,7 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 </button>
                 <Link href={"/settings/profile"}>
                     <Image
-                        src={user?.profileImage || "/images/avatar.png"}
+                        src={`${baseUrl}/${user?.profile_image}` || "/images/avatar.png"}
                         width={40}
                         height={40}
                         alt="User"
@@ -76,7 +79,7 @@ const Topbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                     />
                 </Link>
                 {/* User name hidden on small screens */}
-                <span className="text-sm font-medium text-black hidden md:block">{user?.userName || "N/A"}</span>
+                <span className="text-sm font-medium text-black hidden md:block">{user?.name || "N/A"}</span>
             </div>
         </div>
     );

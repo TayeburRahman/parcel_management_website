@@ -1,11 +1,4 @@
-import ApiError from "../../../errors/ApiError";
 
-import httpStatus from "http-status";
-import { Request } from "express";
-import { RequestData } from "../../../interfaces/common";
-import Auth from "../auth/auth.model";
-import User from "./customers.model";
-import { IParcel } from "../dashboard/dashboard.interface";
 import Parcel from "../dashboard/dashboard.model";
 import AppError from "../../../errors/AppError";
 
@@ -18,6 +11,7 @@ const getMyParcels = async (customerId: string) => {
     try {
         const parcels = await Parcel.find({ customerId })
             .populate("agentId", "name email phone _number profile_image location")
+            .populate("customerId", "name email phone _number profile_image")
             .sort({ createdAt: -1 });
 
         return parcels;

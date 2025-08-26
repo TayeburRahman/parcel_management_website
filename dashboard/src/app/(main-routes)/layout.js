@@ -14,18 +14,16 @@ const adminItems = [
     { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
     { label: "Agent Management", href: "/agent-management", icon: <PiUsersThree size={20} /> },
     { label: "Customer Management", href: "/customer-management", icon: <MdOutlineManageAccounts size={20} /> },
-    { label: "Parcel managment", href: "/parcel-managment", icon: <PiPackageDuotone size={20} /> }, 
+    { label: "Parcel Management", href: "/parcel-managements", icon: <PiPackageDuotone size={20} /> }, 
     { label: "Reports", href: "/reports", icon: <TbReportSearch size={20} /> },
 ];
 
-const customersItems = [
-    { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
-    { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> },
+const customersItems = [ 
+    { label: "Parcel Booking", href: "/parcel-booking", icon: <PiPackageDuotone size={20} /> },
 ];
 
-const agentItems = [
-    { label: "Dashboard", href: "/", icon: <TbLayoutDashboard size={20} /> },
-    { label: "Clients & Plants", href: "/clients-&-plants", icon: <PiUsersThree size={20} /> },
+const agentItems = [ 
+    { label: "Assailed Parcel", href: "/assigned-parcel", icon: <PiUsersThree size={20} /> },
 ];
 
 const settingMenu = [
@@ -69,8 +67,7 @@ export default function MainRouteLayout({ children }) {
 
     return (
         <PrivateRoute allowedRoles={allowedRoles}>
-            <div className="min-h-screen flex relative">
-                {/* Sidebar */}
+            <div className="min-h-screen flex relative"> 
                 <Sidebar
                     menuItems={menuItems}
                     setSettingsOpen={setSettingsOpen}
@@ -85,14 +82,12 @@ export default function MainRouteLayout({ children }) {
                     className={`flex-1 flex flex-col transition-all duration-300
                      ${isSidebarOpen && window.innerWidth < 768 ? 'overflow-hidden h-screen' : 'overflow-auto'}
                      md:overflow-auto md:h-auto`}
-                >
-                    {/* Top bar */}
+                > 
                     <Topbar
                         isSidebarOpen={isSidebarOpen}
                         setIsSidebarOpen={setIsSidebarOpen}
                     />
-
-                    {/* Page content */}
+ 
                     <div className="bg-content-bg h-[calc(100vh-80px)] overflow-auto scrl-hide rounded-tl-sm p-3">
                         {children}
                     </div>

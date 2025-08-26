@@ -68,7 +68,7 @@ const getAllShipmentParcels = catchAsync(
 
 const assignedParcelAgent = catchAsync(
     async (req: Request, res: Response) => {
-        const { parcelId, agentId } = req.query;
+        const { parcelId, agentId } = req.body;
 
         if (!parcelId) {
             throw new AppError(400, "parcelId is required");
@@ -76,7 +76,7 @@ const assignedParcelAgent = catchAsync(
 
         const result = await DashboardService.assignedParcelAgent(
             parcelId as string,
-            agentId as string | undefined
+            agentId as string,
         );
 
         sendResponse(res, {

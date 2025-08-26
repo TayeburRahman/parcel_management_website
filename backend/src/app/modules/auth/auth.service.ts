@@ -21,7 +21,8 @@ import { RequestData } from "../../../interfaces/common";
 import { ICustomers } from "../customers/customers.interface";
 import { IAdmin } from "../admin/admin.interface";
 import { registrationSuccessEmailBody } from "../../../mails/user.register";
- 
+import Agents from "../agents/agents.model";
+
 const registrationAccount = async (files: any, payload: IAuth) => {
   const { role, password, confirmPassword, email, ...other } = payload;
 
@@ -112,15 +113,15 @@ const activateAccount = async (payload: ActivationPayload) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Code didn't match!");
   }
 
-  const user = await Auth.findOneAndUpdate(
+  const updatedAuth = await Auth.findOneAndUpdate(
     { email },
     { isActive: true, activationCode: undefined },
     { new: true, runValidators: true }
   );
 
-  console.log("user", user);
+  console.log("Updated Auth:", { ...updatedAuth?._doc });
 
-  let result = null as ICustomers | IAdmin | null;
+  let result: any = null;
 
   if (existAuth.role === ENUM_USER_ROLE.CUSTOMERS) {
     result = await Customers.findOne({ authId: existAuth._id });
@@ -148,81 +149,110 @@ const activateAccount = async (payload: ActivationPayload) => {
   );
 
   const refreshToken = jwtHelpers.createToken(
-    { authId: existAuth._id, userId: result._id, role: existAuth.role },
+    {
+      authId: existAuth._id,
+      userId: result._id,
+      role: existAuth.role,
+    },
     config.jwt.refresh_secret as string,
     config.jwt.refresh_expires_in as string
   );
 
-  console.log(...existAuth._doc)
-
   return {
     accessToken,
     refreshToken,
-    user: { role: existAuth.role, ...existAuth._doc },
+    user: { role: existAuth.role, ...updatedAuth?._doc },
   };
 };
 
 
 const loginAccount = async (payload: LoginPayload) => {
-  const { email, password } = payload;
+  try {
+    const { email, password } = payload;
 
-  const isAuth = await Auth.isAuthExist(email);
+    if (!email || !password) {
+      throw new ApiError(400, "Email and password are required");
+    }
 
-  if (!isAuth) {
-    throw new ApiError(404, "User does not exist");
+    const isAuth = await Auth.isAuthExist(email);
+    if (!isAuth) {
+      throw new ApiError(404, "User does not exist");
+    }
+
+    if (!isAuth.isActive) {
+      throw new ApiError(401, "Please activate your account before login");
+    }
+
+    if (isAuth.is_block) {
+      throw new ApiError(403, "Your account is blocked. Contact support.");
+    }
+
+    if (
+      isAuth.password &&
+      !(await Auth.isPasswordMatched(password, isAuth.password))
+    ) {
+      throw new ApiError(401, "Password is incorrect");
+    }
+
+    const { _id: authId, role: userRole } = isAuth;
+    let userDetails: any = null;
+    let role: string = "";
+
+    switch (userRole) {
+      case ENUM_USER_ROLE.CUSTOMERS:
+        userDetails = await Customers.findOne({ authId }).populate("authId");
+        role = ENUM_USER_ROLE.CUSTOMERS;
+        break;
+      case ENUM_USER_ROLE.AGENT:
+        userDetails = await Agents.findOne({ authId }).populate("authId");
+        role = ENUM_USER_ROLE.AGENT;
+        break;
+      case ENUM_USER_ROLE.ADMIN:
+        userDetails = await Admin.findOne({ authId }).populate("authId");
+        role = ENUM_USER_ROLE.ADMIN;
+        break;
+
+      case ENUM_USER_ROLE.SUPER_ADMIN:
+        userDetails = await Admin.findOne({ authId }).populate("authId");
+        role = ENUM_USER_ROLE.SUPER_ADMIN;
+        break;
+
+      default:
+        throw new ApiError(400, "Invalid role provided!");
+    }
+
+    if (!userDetails) {
+      throw new ApiError(
+        404,
+        `No user profile found for role: ${userRole}`
+      );
+    }
+
+    // Generate tokens
+    const accessToken = jwtHelpers.createToken(
+      { authId, role, userId: userDetails._id },
+      config.jwt.secret as string,
+      config.jwt.expires_in as string
+    );
+
+    const refreshToken = jwtHelpers.createToken(
+      { authId, role, userId: userDetails._id },
+      config.jwt.refresh_secret as string,
+      config.jwt.refresh_expires_in as string
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { role, ...userDetails._doc },
+    };
+  } catch (error: any) {
+    console.error("Login Error:", error.message || error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, "Something went wrong during login");
   }
-  if (!isAuth.isActive) {
-    throw new ApiError(401, "Please activate your account then try to login");
-  }
-  if (isAuth.is_block) {
-    throw new ApiError(403, "You are blocked. Contact support");
-  }
-  if (
-    isAuth.password &&
-    !(await Auth.isPasswordMatched(password, isAuth.password))
-  ) {
-    throw new ApiError(401, "Password is incorrect");
-  }
-
-  const { _id: authId } = isAuth;
-  let userDetails: any;
-  let role;
-
-  console.log("role", role)
-  switch (isAuth.role) {
-    case ENUM_USER_ROLE.CUSTOMERS:
-      userDetails = await Customers.findOne({ authId: isAuth._id }).populate("authId");
-      role = ENUM_USER_ROLE.CUSTOMERS;
-      break;
-    case ENUM_USER_ROLE.ADMIN:
-      userDetails = await Admin.findOne({ authId: isAuth._id }).populate("authId");
-      role = ENUM_USER_ROLE.ADMIN;
-      break;
-    case ENUM_USER_ROLE.SUPER_ADMIN:
-      userDetails = await Admin.findOne({ authId: isAuth._id }).populate("authId");
-      role = ENUM_USER_ROLE.SUPER_ADMIN;
-      break;
-    default:
-      throw new ApiError(400, "Invalid role provided!");
-  }
-
-  const accessToken = jwtHelpers.createToken(
-    { authId, role, userId: userDetails._id },
-    config.jwt.secret as string,
-    config.jwt.expires_in as string
-  );
-
-  const refreshToken = jwtHelpers.createToken(
-    { authId, role, userId: userDetails._id },
-    config.jwt.refresh_secret as string,
-    config.jwt.refresh_expires_in as string
-  );
-
-  return {
-    accessToken,
-    refreshToken,
-    user: { role, ...userDetails._doc },
-  };
 };
 
 const forgotPass = async (payload: { email: string }) => {
@@ -611,7 +641,7 @@ const updateMyProfile = async (req: RequestData) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid role");
   } catch (err) {
     console.error("Update profile error:", err);
-    if (err instanceof ApiError) throw err;  
+    if (err instanceof ApiError) throw err;
     throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Something went wrong while updating profile");
   }
 };

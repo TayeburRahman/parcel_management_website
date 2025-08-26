@@ -57,8 +57,8 @@ const AgentsSchema = new Schema<IAgents>(
     },
     status: {
       type: String,
-      enum: ['pending', 'approved', 'declined'],
-      default: 'pending',
+      enum: ["active", "deactivate"],
+      default: 'active',
     },
   },
   {

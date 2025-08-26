@@ -2,12 +2,11 @@
 
 import { X } from "lucide-react"  
 
-const ConfirmModal = ({ setConfirmModal, confirmModal, message, onConfirm }) => {
+const ConfirmModal = ({ setConfirmModal, confirmModal, message, onConfirm, isLoading }) => {
   if (!confirmModal) return null
 
   const handleConfirm = () => {
     onConfirm();  
-    setConfirmModal(false)
   }
 
   return (
@@ -44,9 +43,10 @@ const ConfirmModal = ({ setConfirmModal, confirmModal, message, onConfirm }) => 
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleConfirm}
-              className="flex-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
+              disabled={isLoading}
+              className="flex-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirm
+              {isLoading ? "Confirming..." : "Confirm"}
             </button>
           </div>
         </div>

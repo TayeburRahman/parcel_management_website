@@ -44,9 +44,10 @@ const authSlice = createSlice({
       state.VerifyOtpError = action.payload;
     },
     SetResetPasswordError: (state, action) => {
+       
       state.ResetPasswordError = action.payload;
     },
-    SetLoginError: (state, action) => {
+    SetLoginError: (state, action) => { 
       state.LoginError = action.payload;
     },
     SetRegisterError: (state, action) => {

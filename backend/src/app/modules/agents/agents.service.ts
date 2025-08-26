@@ -30,8 +30,37 @@ const getMyAssailedParcels = async (agentId: string, queryParams: IQueryParams) 
   return { parcels, pagination };
 }
 
+const updateParcelStatusByAgent = async (
+  parcelId: string,
+  status: string
+) => {
+  try {
+    const allowedStatuses = ['pending', 'picked-up', 'in-transit', 'delivered', 'cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      throw new Error('Invalid status update.');
+    }
+
+    const updatedParcel = await Parcel.findOneAndUpdate(
+      { _id: parcelId },
+      { status },
+      { new: true }
+    ).populate({
+      path: 'customerId',
+      select: 'name email phone_number profile_image',
+    });
+
+    if (!updatedParcel) {
+      throw new Error('Parcel not found or unauthorized update.');
+    }
+
+    return updatedParcel;
+  } catch (error: any) {
+    throw new Error(`Error updating parcel status: ${error.message}`);
+  }
+};
 
 export const AgentService = {
-  getMyAssailedParcels
+  getMyAssailedParcels,
+  updateParcelStatusByAgent
 };
 

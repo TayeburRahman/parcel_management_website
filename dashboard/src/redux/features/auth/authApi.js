@@ -19,7 +19,7 @@ export const authApi = apiSlice.injectEndpoints({
                     SuccessToast("Please check you email");
                 } catch (err) {
                     const message = err?.error?.data?.message;
-                    dispatch(SetRegisterError(message));
+                    ErrorToast(message);
                 }
             },
         }),
@@ -45,7 +45,8 @@ export const authApi = apiSlice.injectEndpoints({
                     }
                 } catch (err) {
                     const message = err?.error?.data?.message || "Something went wrong"; 
-                    dispatch(SetLoginError(message)); 
+                    console.log("===", message)
+                   ErrorToast(message); 
                 }
             },
         }),
@@ -62,10 +63,10 @@ export const authApi = apiSlice.injectEndpoints({
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     if (message === "Cannot read properties of null (reading 'email')") {
-                        dispatch(SetForgotError("Couldn't find this email address"))
+                        ErrorToast("Couldn't find this email address")
                     }
                     else {
-                        dispatch(SetForgotError(message))
+                        ErrorToast(message)
                     }
                 }
             },
@@ -102,7 +103,7 @@ export const authApi = apiSlice.injectEndpoints({
                     await queryFulfilled;
                 } catch (err) {
                     const message = err?.error?.data?.message;
-                    dispatch(SetVerifyOtpError(message));
+                    ErrorToast(message);
                 }
             },
         }),
@@ -124,7 +125,7 @@ export const authApi = apiSlice.injectEndpoints({
                     if (message === "password is incorrect") {
                         dispatch(SetChangePasswordError("Wrong Current Password"))
                     } else {
-                        dispatch(SetChangePasswordError(message))
+                        ErrorToast(message)
                     }
                 }
             },
@@ -140,14 +141,14 @@ export const authApi = apiSlice.injectEndpoints({
                     await queryFulfilled;
                     setTimeout(() => {
                         localStorage.clear()
-                        window.location.href = "/login";
+                        window.location.href = "/auth/login";
                     }, 300);
                 } catch (err) {
                     const message = err?.error?.data?.message;
                     if (message === "password is incorrect") {
-                        dispatch(SetChangePasswordError("Wrong Current Password"))
+                        ErrorToast("Wrong Current Password")
                     } else {
-                        dispatch(SetChangePasswordError(message))
+                         ErrorToast(message)
                     }
                 }
             },
@@ -196,7 +197,7 @@ export const authApi = apiSlice.injectEndpoints({
 
                 } catch (err) {
                     const message = err?.error?.data?.message;
-                    dispatch(SetVerifyAccountOtpError(message));
+                  ErrorToast(message)
                 }
             },
         }),
@@ -241,7 +242,7 @@ export const authApi = apiSlice.injectEndpoints({
                   err?.error?.data?.message ||
                   err?.data?.message ||
                   "Profile update failed!";
-                dispatch(SetRegisterError(message));
+                ErrorToast(message);
                 alert(message);
               }
             },

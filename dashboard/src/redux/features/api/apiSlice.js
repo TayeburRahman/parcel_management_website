@@ -4,7 +4,7 @@ import { getToken } from "@/helper/SessionHelper";
 import { SetLoginError } from "../auth/authSlice";
 
 // export const baseUrl = "https://backend.machmakers.co.uk";
-export const baseUrl = "http://192.168.0.109:5000";
+export const baseUrl = "http://10.10.20.11:5000";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: baseUrl,
@@ -27,7 +27,7 @@ export const apiSlice = createApi({
         api.dispatch(SetLoginError(error?.data?.message));
       } else {
         localStorage.clear(); 
-        window.location.href = "/login";
+        window.location.href = "/auth/login";
       }
     }
 

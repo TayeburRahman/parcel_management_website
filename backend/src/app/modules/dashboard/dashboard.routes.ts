@@ -5,6 +5,7 @@ import { DashboardController } from './dashboard.controller';
 import { ENUM_USER_ROLE } from '../../../enums/user';
 import auth from '../../middlewares/auth';
 import { CustomerController } from '../customers/customers.controller';
+import { AgentController } from '../agents/agents.controller';
 
 const router = express.Router();
 
@@ -37,14 +38,19 @@ router.patch("/assigned-parcel-agent",
 );
 
 router.get("/parcels_details/:id",
-    auth(ENUM_USER_ROLE.CUSTOMERS, ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.AGENT),
-    CustomerController.getMyParcels
+    auth(ENUM_USER_ROLE.CUSTOMERS, ENUM_USER_ROLE.AGENT, ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.AGENT),
+    DashboardController.getParcelsDetails
 );
 
 // --- Parcel Routes Customer---
 router.get("/get-my-parcels",
     auth(ENUM_USER_ROLE.CUSTOMERS),
     CustomerController.getMyParcels
+);
+// --- Parcel Routes Agent---
+router.get("/assigned-parcels",
+    auth(ENUM_USER_ROLE.AGENT),
+    AgentController.getMyAssailedParcels
 );
 // ============================
 export const DashboardRoutes = router;

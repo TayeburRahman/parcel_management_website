@@ -7,6 +7,7 @@ class QueryBuilder<T> {
   constructor(modelQuery: Query<T[], T>, query: Record<string, unknown>) {
     this.modelQuery = modelQuery;
     this.query = query;
+
   }
 
   search(searchableFields: string[]) {
@@ -26,15 +27,31 @@ class QueryBuilder<T> {
   }
 
   filter() {
-    const queryObj = { ...this.query }; // copy
+    const queryObj = { ...this.query };
 
     // Filtering
-    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields', 'date'];
 
     excludeFields.forEach(el => delete queryObj[el]);
 
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
 
+    return this;
+  }
+
+  dateFilter() {
+
+    const date = this?.query?.date as string | undefined;
+    console.log("=====ww", this.query.date)
+    if (date) {
+      const start = new Date(date);
+      const end = new Date(date);
+      end.setDate(end.getDate() + 1);
+
+      this.modelQuery = this.modelQuery.find({
+        createdAt: { $gte: start, $lt: end },
+      });
+    }
     return this;
   }
 
@@ -63,6 +80,7 @@ class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
+
   async countTotal() {
     const totalQueries = this.modelQuery.getFilter();
     const total = await this.modelQuery.model.countDocuments(totalQueries);

@@ -10,8 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html suppressHydrationWarning>
       <body className='container mx-auto max-w-[1920px]'>
-        <Provider store={store}>
-          {/* <PrivateRoute> */}
+        <Provider store={store}> 
             <NextTopLoader
               color="#00B047"
               height={2}
@@ -21,8 +20,7 @@ export default function RootLayout({ children }) {
               position="top-center"
               reverseOrder={false}
             />
-            {children}
-          {/* </PrivateRoute> */}
+            {children} 
         </Provider>
       </body>
     </html >

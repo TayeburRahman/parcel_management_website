@@ -7,11 +7,11 @@ import { ENUM_USER_ROLE } from "../../../enums/user";
 import Customers from "../customers/customers.model";
 import { IAccount, IAuth } from "../auth/auth.interface";
 import Agents from "../agents/agents.model";
- 
+
 
 const createAccount = async (files: any, payload: IAccount) => {
   const { role, password, email, ...other } = payload;
-  
+
   if (role !== ENUM_USER_ROLE.CUSTOMERS && role !== ENUM_USER_ROLE.AGENT) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Only Customer or Agent registration is allowed!");
   }
@@ -20,28 +20,28 @@ const createAccount = async (files: any, payload: IAccount) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email, Password, and Confirm Password are required!");
   }
 
- 
+
   let profile_image: string | null = null;
   if (files?.profile_image?.[0]) {
     profile_image = `/images/profile/${files.profile_image[0].filename}`;
-  } 
+  }
 
   const existingAuth = await Auth.findOne({ email }).lean();
   if (existingAuth?.isActive) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email already exists");
   }
 
- 
+
   if (existingAuth && !existingAuth.isActive) {
     await Promise.all([
       existingAuth.role === ENUM_USER_ROLE.CUSTOMERS &&
-        (await Customers.deleteOne({ authId: existingAuth._id })),
+      (await Customers.deleteOne({ authId: existingAuth._id })),
       existingAuth.role === ENUM_USER_ROLE.AGENT &&
-        (await Agents.deleteOne({ authId: existingAuth._id })),
+      (await Agents.deleteOne({ authId: existingAuth._id })),
       Auth.deleteOne({ email }),
     ]);
   }
- 
+
   const authData = {
     role,
     name: other.name,
@@ -55,7 +55,7 @@ const createAccount = async (files: any, payload: IAccount) => {
   if (!createAuth) {
     throw new ApiError(500, "Failed to create auth account");
   }
- 
+
   other.authId = createAuth._id;
   other.email = email;
   other.profile_image = profile_image;
@@ -73,7 +73,7 @@ const createAccount = async (files: any, payload: IAccount) => {
   }
 
   return { result, role, message: "Account has been created successfully." };
-}; 
+};
 const deleteAccount = async (email: string) => {
   const existingAuth = await Auth.findOne({ email }).lean();
   if (!existingAuth) {
@@ -171,7 +171,7 @@ const blockUnblockAuthUser = async (payload: BlockUnblockPayload) => {
   }
 
   const statusValue = is_block ? "deactivate" : "active";
-   console.log('role', role, updatedAuth)
+  console.log('role', role, updatedAuth)
   switch (role) {
     case ENUM_USER_ROLE.CUSTOMERS: {
       const customer = await Customers.findOneAndUpdate(

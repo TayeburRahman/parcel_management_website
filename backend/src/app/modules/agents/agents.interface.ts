@@ -17,7 +17,7 @@ export interface IAgents extends Document {
   assignedParcels: mongoose.Schema.Types.ObjectId[];
   totalDeliveries: number;
   rating?: number;
-  status: "pending" | "approved" | "declined";
+  status: "active" | "deactivate" | "declined";
   createdAt?: Date;
   updatedAt?: Date;
 }
