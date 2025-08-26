@@ -29,7 +29,7 @@ app.use(express.static('uploads'));
 app.use('/', routes);
 
 app.get('/', async (req: Request, res: Response) => {
-  res.json('Welcome to Trading App');
+  res.json('Welcome to Parcel Management System ');
 });
 
 app.use(globalErrorHandler);
