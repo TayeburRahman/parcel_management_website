@@ -35,7 +35,7 @@ const updateParcelStatusByAgent = async (
   status: string
 ) => {
   try {
-    const allowedStatuses = ['pending', 'picked-up', 'in-transit', 'delivered', 'cancelled'];
+    const allowedStatuses = ["PENDING", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "FAILED"];
     if (!allowedStatuses.includes(status)) {
       throw new Error('Invalid status update.');
     }
